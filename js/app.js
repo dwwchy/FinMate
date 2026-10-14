@@ -4,7 +4,7 @@
  * Vanilla JavaScript ES6+
  */
 
-const STORAGE_KEY = 'finmate_shared_core_v3';
+const STORAGE_KEY = 'finmate_shared_core_v4';
 let state = null;
 let currentActiveTab = 'dashboard';
 let tempNewReceiptImg = '';
@@ -54,45 +54,20 @@ function loadState() {
     state.settings.firstOpenedDate = new Date().toISOString().slice(0, 10);
   }
 
-  // Normalisasi wallets menjadi Array
-  if (!Array.isArray(state.wallets)) {
-    const legacy = state.wallets;
-    state.wallets = [
-      {
-        id: "kas_bersama",
-        name: legacy?.shared?.name || "Kas Bersama",
-        initialBalance: Number(legacy?.shared?.balance) || 1500000,
-        color: "#38BDF8",
-        isDefault: true
-      },
-      {
-        id: "jatah_bulanan",
-        name: "Jatah Bulanan",
-        initialBalance: 500000,
-        color: "#818CF8",
-        isDefault: false
-      },
-      {
-        id: "sumber_lain",
-        name: "Sumber Lainnya",
-        initialBalance: 200000,
-        color: "#34D399",
-        isDefault: false
-      }
-    ];
+  // Normalisasi wallets menjadi Array (Hanya Bank & Cash dengan saldo awal 0)
+  if (!Array.isArray(state.wallets) || state.wallets.length === 0) {
+    state.wallets = deepClone(initialData.wallets);
   }
 
   // Normalisasi categories terpisah (income vs expense)
-  if (!state.categories.income || !state.categories.expense) {
+  if (!state.categories || typeof state.categories !== 'object') {
     state.categories = deepClone(initialData.categories);
   }
-
-  // Pastikan kategori pemasukan selalu 2 sumber
-  state.categories.income = ["Gaji / Jatah Bulanan", "Sumber Lainnya"];
-
-  // Pastikan kategori pengeluaran tidak mengandung "Kas Bersama"
-  if (Array.isArray(state.categories?.expense)) {
-    state.categories.expense = state.categories.expense.filter(c => c !== "Kas Bersama");
+  if (!Array.isArray(state.categories.income)) {
+    state.categories.income = [];
+  }
+  if (!Array.isArray(state.categories.expense)) {
+    state.categories.expense = [];
   }
 
   if (!Array.isArray(state.transactions)) {
@@ -111,9 +86,10 @@ function loadState() {
   }
 
   // Normalisasi walletId & receipt notes pada transaksi
+  const defaultWalletId = state.wallets[0]?.id || 'bank';
   state.transactions.forEach(t => {
     if (!t.walletId) {
-      t.walletId = "kas_bersama";
+      t.walletId = defaultWalletId;
     }
     if (t.notes === undefined) {
       t.notes = "";
@@ -137,32 +113,25 @@ function resetDataToDefault() {
     // 1. Kosongkan seluruh transaksi
     state.transactions = [];
 
-    // 2. Reset saldo awal seluruh rekening kas menjadi 0
+    // 2. Reset saldo awal seluruh rekening kas menjadi 0 (Bank & Cash)
     state.wallets = [
       {
-        id: "kas_bersama",
-        name: "Kas Bersama",
+        id: "bank",
+        name: "Bank",
         initialBalance: 0,
         color: "#38BDF8",
         isDefault: true
       },
       {
-        id: "jatah_bulanan",
-        name: "Jatah Bulanan",
-        initialBalance: 0,
-        color: "#818CF8",
-        isDefault: false
-      },
-      {
-        id: "sumber_lain",
-        name: "Sumber Lainnya",
+        id: "cash",
+        name: "Cash",
         initialBalance: 0,
         color: "#34D399",
         isDefault: false
       }
     ];
 
-    // 3. Kembalikan kategori ke default
+    // 3. Kembalikan kategori ke default (kosong)
     state.categories = deepClone(initialData.categories);
 
     // 4. Kunci dan arahkan periode bulan ke bulan saat ini
@@ -563,31 +532,20 @@ function updateFormTypeVisual() {
   const typeRadio = document.querySelector('input[name="txType"]:checked');
   const type = typeRadio?.value || 'expense';
 
-  const catSelect = document.getElementById('txCategory');
+  const catInput = document.getElementById('txCategory');
+  const catList = document.getElementById('txCategoryList');
   const catHint = document.getElementById('txCategoryHint');
 
-  if (type === 'income') {
-    if (catHint) catHint.textContent = 'Pemasukan: Gaji / Jatah Bulanan atau Sumber Lainnya.';
+  const cats = (state.categories && Array.isArray(state.categories[type])) ? state.categories[type] : [];
 
-    if (catSelect) {
-      const curVal = catSelect.value;
-      const cats = state.categories.income || ["Gaji / Jatah Bulanan", "Sumber Lainnya"];
-      catSelect.innerHTML = cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
-      if (curVal && cats.includes(curVal)) {
-        catSelect.value = curVal;
-      }
-    }
-  } else {
-    if (catHint) catHint.textContent = 'Pilih pos pengeluaran kas bersama.';
+  if (catHint) {
+    catHint.textContent = type === 'income'
+      ? 'Tulis kategori pemasukan Anda sendiri atau pilih dari yang pernah dicatat.'
+      : 'Tulis kategori pengeluaran Anda sendiri atau pilih dari yang pernah dicatat.';
+  }
 
-    if (catSelect) {
-      const curVal = catSelect.value;
-      const cats = state.categories.expense || [];
-      catSelect.innerHTML = cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
-      if (curVal && cats.includes(curVal)) {
-        catSelect.value = curVal;
-      }
-    }
+  if (catList) {
+    catList.innerHTML = cats.map(c => `<option value="${escapeHtml(c)}"></option>`).join('');
   }
 
   lucide.createIcons();
@@ -661,22 +619,29 @@ function handleSaveTransaction(event) {
 
   const amountInput = document.getElementById('txAmount');
   const dateInput = document.getElementById('txDate');
-  const categorySelect = document.getElementById('txCategory');
+  const categoryInput = document.getElementById('txCategory');
   const walletSelect = document.getElementById('txWalletSelect');
   const typeRadio = document.querySelector('input[name="txType"]:checked');
   const notesInput = document.getElementById('txNotes');
 
   const amount = parseNumberFromDots(amountInput?.value);
   const date = dateInput?.value || new Date().toISOString().slice(0, 10);
-  const category = categorySelect?.value || 'Lain-lain';
-  const walletId = walletSelect?.value || (state.wallets[0]?.id || 'kas_bersama');
   const type = typeRadio?.value || 'expense';
+  const category = categoryInput?.value?.trim() || (type === 'income' ? 'Pemasukan' : 'Pengeluaran');
+  const walletId = walletSelect?.value || (state.wallets[0]?.id || 'bank');
   const notes = notesInput?.value.trim() || '';
   const receiptImage = tempNewReceiptImg || '';
 
   if (amount <= 0) {
     showToast('Nominal transaksi harus lebih dari 0.', 'warning');
     return;
+  }
+
+  // Simpan kategori kustom baru jika belum ada dalam daftar
+  if (!state.categories) state.categories = { income: [], expense: [] };
+  if (!Array.isArray(state.categories[type])) state.categories[type] = [];
+  if (category && !state.categories[type].includes(category)) {
+    state.categories[type].push(category);
   }
 
   // Turunkan judul/nama transaksi secara otomatis dari coretan rincian (baris pertama) atau kategori
@@ -713,6 +678,7 @@ function handleSaveTransaction(event) {
 
   // Reset Form
   if (amountInput) amountInput.value = '';
+  if (categoryInput) categoryInput.value = '';
   if (notesInput) notesInput.value = '';
   removeReceiptPhoto('new');
 
@@ -916,11 +882,12 @@ function handleDeleteWallet(walletId) {
   const wallet = state.wallets.find(w => w.id === walletId);
   if (!wallet || wallet.isDefault) return;
 
-  if (confirm(`Hapus rekening "${wallet.name}"? Transaksi yang terhubung akan dialihkan ke Kas Bersama.`)) {
-    // Alihkan transaksi ke kas_bersama
+  const targetWallet = state.wallets.find(w => w.id !== walletId) || { id: 'bank', name: 'Bank' };
+
+  if (confirm(`Hapus rekening "${wallet.name}"? Transaksi yang terhubung akan dialihkan ke ${targetWallet.name}.`)) {
     state.transactions.forEach(t => {
       if (t.walletId === walletId) {
-        t.walletId = 'kas_bersama';
+        t.walletId = targetWallet.id;
       }
     });
 
@@ -1053,7 +1020,12 @@ function populateFilterCategorySelect() {
   if (!select) return;
 
   const currentVal = select.value;
-  const allCats = [...(state.categories.income || []), ...(state.categories.expense || [])];
+  const catsSet = new Set([
+    ...(state.categories.income || []),
+    ...(state.categories.expense || []),
+    ...state.transactions.map(t => t.category).filter(Boolean)
+  ]);
+  const allCats = Array.from(catsSet);
 
   select.innerHTML = `<option value="all">Semua Kategori</option>` +
     allCats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
@@ -1138,17 +1110,19 @@ function openEditTxModal(txId) {
 
 function updateEditModalCategories(selectedCat) {
   const radioInc = document.getElementById('editTxTypeIncome');
-  const catSelect = document.getElementById('editTxCategory');
-  if (!catSelect) return;
+  const catInput = document.getElementById('editTxCategory');
+  const catList = document.getElementById('editTxCategoryList');
+  if (!catInput) return;
 
   const isIncome = radioInc?.checked;
-  const cats = isIncome
-    ? (state.categories.income || ["Gaji / Jatah Bulanan", "Sumber Lainnya"])
-    : (state.categories.expense || []);
+  const type = isIncome ? 'income' : 'expense';
+  const cats = (state.categories && Array.isArray(state.categories[type])) ? state.categories[type] : [];
 
-  catSelect.innerHTML = cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
-  if (selectedCat && cats.includes(selectedCat)) {
-    catSelect.value = selectedCat;
+  if (catList) {
+    catList.innerHTML = cats.map(c => `<option value="${escapeHtml(c)}"></option>`).join('');
+  }
+  if (selectedCat !== undefined) {
+    catInput.value = selectedCat;
   }
 }
 
@@ -1168,7 +1142,7 @@ function handleSaveTxEdit(event) {
   const titleInput = document.getElementById('editTxTitle');
   const amtInput = document.getElementById('editTxAmount');
   const dateInput = document.getElementById('editTxDate');
-  const catSelect = document.getElementById('editTxCategory');
+  const catInput = document.getElementById('editTxCategory');
   const walletSelect = document.getElementById('editTxWallet');
   const typeRadio = document.querySelector('input[name="editTxType"]:checked');
   const notesInput = document.getElementById('editTxNotes');
@@ -1179,6 +1153,16 @@ function handleSaveTxEdit(event) {
     return;
   }
 
+  const type = typeRadio?.value || 'expense';
+  const newCat = catInput?.value?.trim() || tx.category || (type === 'income' ? 'Pemasukan' : 'Pengeluaran');
+
+  // Simpan kategori baru jika belum ada dalam riwayat
+  if (!state.categories) state.categories = { income: [], expense: [] };
+  if (!Array.isArray(state.categories[type])) state.categories[type] = [];
+  if (newCat && !state.categories[type].includes(newCat)) {
+    state.categories[type].push(newCat);
+  }
+
   const notes = notesInput?.value.trim() || '';
   let newTitle = titleInput?.value.trim() || '';
   if (!newTitle && notes) {
@@ -1186,7 +1170,7 @@ function handleSaveTxEdit(event) {
     if (firstLine) newTitle = firstLine.slice(0, 45);
   }
   if (!newTitle) {
-    newTitle = catSelect?.value || tx.title || 'Transaksi Kas';
+    newTitle = newCat || tx.title || 'Transaksi Kas';
   }
 
   const newAmount = parseNumberFromDots(amtInput?.value);
@@ -1198,9 +1182,9 @@ function handleSaveTxEdit(event) {
   tx.title = newTitle;
   tx.amount = newAmount;
   tx.date = dateInput?.value || tx.date;
-  tx.category = catSelect?.value || tx.category;
-  tx.walletId = walletSelect?.value || tx.walletId;
-  tx.type = typeRadio?.value || 'expense';
+  tx.category = newCat;
+  tx.walletId = walletSelect?.value || tx.walletId || (state.wallets[0]?.id || 'bank');
+  tx.type = type;
   tx.notes = notes;
   tx.receiptImage = tempEditReceiptImg || '';
 
@@ -1873,7 +1857,7 @@ function openReceiptFullScreen() {
 // 12. OTENTIKASI RESMI GOOGLE & CADANGAN OTOMATIS GOOGLE DRIVE
 // ========================================================
 
-const DEFAULT_GOOGLE_CLIENT_ID = '1097773326723-haj28s0pdfmm96mhbp0be8fc0bhentmf.apps.googleusercontent.com';
+const DEFAULT_GOOGLE_CLIENT_ID = '1097773326723-ri4lejjm4p7kejd4v9hst3c4tk97cjoa.apps.googleusercontent.com';
 const GOOGLE_CLIENT_ID_STORAGE_KEY = 'finmate_google_oauth_client_id';
 const GOOGLE_DRIVE_SCOPES = 'openid email profile https://www.googleapis.com/auth/drive.file';
 const DRIVE_MAIN_FOLDER_NAME = 'FinMate';
@@ -1895,6 +1879,10 @@ let googleOAuthFlowState = {
 
 function getGoogleClientId() {
   const saved = (localStorage.getItem(GOOGLE_CLIENT_ID_STORAGE_KEY) || '').trim();
+  if (saved && !saved.includes('ri4lejjm4p7kejd4v9hst3c4tk97cjoa')) {
+    localStorage.removeItem(GOOGLE_CLIENT_ID_STORAGE_KEY);
+    return DEFAULT_GOOGLE_CLIENT_ID.trim();
+  }
   return saved || DEFAULT_GOOGLE_CLIENT_ID.trim();
 }
 
@@ -1921,7 +1909,7 @@ function buildSafeDriveFolderUrl(folderId, email) {
   const cleanEmail = (email || (state.googleAccount && state.googleAccount.email) || '').trim();
   const targetUrl = folderId
     ? `https://drive.google.com/drive/folders/${folderId}`
-    : 'https://drive.google.com/drive/my-drive';
+    : `https://drive.google.com/drive/search?q=${encodeURIComponent('FinMate')}`;
   if (cleanEmail) {
     return `https://accounts.google.com/AccountChooser?Email=${encodeURIComponent(
       cleanEmail
@@ -2083,16 +2071,15 @@ function initGoogleOneTapIfAvailable() {
 }
 
 function checkAndTriggerGoogleAutoLoginOnStartup() {
-  // Jika sudah terhubung akun Google dan aktif login, tidak perlu memunculkan popup otomatis
+  // Jika sudah terhubung akun Google dan aktif login, tidak perlu aksi lanjutan
   if (state.googleAccount && state.googleAccount.email && state.auth?.isLoggedIn) {
     return;
   }
 
-  // Tampilkan popup resmi Google segera setelah aplikasi dibuka
+  // Coba inisialisasi One Tap secara aman tanpa memicu browser pop-up blocker
   setTimeout(() => {
     initGoogleOneTapIfAvailable();
-    openGoogleAuthModal(false);
-  }, 350);
+  }, 400);
 }
 
 async function openGoogleAuthModal(triggerBackupAfterLogin = false) {
@@ -2722,6 +2709,22 @@ async function completeDirectGoogleAccountLogin(name, email, picture = '', acces
   if (latestGoogleAccessToken) {
     try {
       showToast('Menghubungkan ke folder FinMate di Google Drive...', 'info');
+
+      // 1. Pastikan folder FinMate dibuat/ditemukan dan simpan ID foldernya
+      const mainFolderId = await getOrCreateGoogleDriveFolder(latestGoogleAccessToken, DRIVE_MAIN_FOLDER_NAME);
+      if (
+        mainFolderId &&
+        !mainFolderId.includes('ERROR') &&
+        !mainFolderId.includes('DENIED') &&
+        !mainFolderId.includes('EXPIRED')
+      ) {
+        if (state.googleAccount) {
+          state.googleAccount.driveFolderId = mainFolderId;
+          saveState();
+        }
+      }
+
+      // 2. Cek apakah ada cadangan transaksi sebelumnya di Google Drive
       const driveSnapshot = await fetchLatestBackupFromRealGoogleDrive(latestGoogleAccessToken);
       if (driveSnapshot && Array.isArray(driveSnapshot.transactions) && driveSnapshot.transactions.length > 0) {
         restoreFromSnapshotObject(driveSnapshot);
@@ -2834,9 +2837,48 @@ function disconnectGoogleAccount() {
   }
 }
 
-function handleOpenGoogleDriveFolder(event, folderId, email) {
+async function handleOpenGoogleDriveFolder(event, folderId, email) {
   if (event) event.stopPropagation();
-  const url = buildSafeDriveFolderUrl(folderId, email);
+
+  let validFolderId = folderId || (state.googleAccount && state.googleAccount.driveFolderId) || '';
+  const userEmail = email || (state.googleAccount && state.googleAccount.email) || '';
+
+  // Jika folderId belum tersimpan dan token Google aktif tersedia, cari atau buatkan folder sekarang
+  if (!validFolderId && latestGoogleAccessToken) {
+    showToast('Memeriksa & menyiapkan folder FinMate di Google Drive...', 'info');
+    try {
+      const createdOrFoundId = await getOrCreateGoogleDriveFolder(latestGoogleAccessToken, DRIVE_MAIN_FOLDER_NAME);
+      if (
+        createdOrFoundId &&
+        !createdOrFoundId.includes('ERROR') &&
+        !createdOrFoundId.includes('DENIED') &&
+        !createdOrFoundId.includes('EXPIRED')
+      ) {
+        validFolderId = createdOrFoundId;
+        if (state.googleAccount) {
+          state.googleAccount.driveFolderId = validFolderId;
+          saveState();
+        }
+        // Pastikan file cadangan awal juga diunggah
+        const todayISO = getTodayLocalISO();
+        const fileName = `Cadangan_Transaksi_${todayISO}.json`;
+        const payload = buildFullTransactionBackupPayload();
+        await uploadBackupToRealGoogleDrive(latestGoogleAccessToken, fileName, payload);
+        renderProfileTab();
+      }
+    } catch (e) {
+      console.warn('Gagal menyiapkan folder FinMate:', e);
+    }
+  }
+
+  // Jika belum login ke Google sama sekali
+  if (!userEmail && !latestGoogleAccessToken) {
+    showToast('Silakan masuk dengan akun Google terlebih dahulu.', 'warning');
+    openGoogleAuthModal(false);
+    return;
+  }
+
+  const url = buildSafeDriveFolderUrl(validFolderId, userEmail);
   window.open(url, '_blank');
 }
 

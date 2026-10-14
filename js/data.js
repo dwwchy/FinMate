@@ -28,91 +28,30 @@ const initialData = {
     firstOpenedDate: "2026-10-13", // Tanggal awal buka aplikasi
     cloudSyncEnabled: true
   },
-  // Rekening / Sumber Dana Kas (Bisa ditambah oleh user di Tab Dompet)
+  // Rekening / Sumber Dana Kas (Bank dan Cash dengan saldo awal 0)
   wallets: [
     {
-      id: "kas_bersama",
-      name: "Kas Bersama",
-      initialBalance: 1500000,
+      id: "bank",
+      name: "Bank",
+      initialBalance: 0,
       color: "#38BDF8",
       isDefault: true
     },
     {
-      id: "jatah_bulanan",
-      name: "Jatah Bulanan",
-      initialBalance: 500000,
-      color: "#818CF8",
-      isDefault: false
-    },
-    {
-      id: "sumber_lain",
-      name: "Sumber Lainnya",
-      initialBalance: 200000,
+      id: "cash",
+      name: "Cash",
+      initialBalance: 0,
       color: "#34D399",
       isDefault: false
     }
   ],
-  // Kategori Terpisah: Pemasukan (2 sumber) vs Pengeluaran (Bisa ditambah user)
+  // Kategori Transaksi (Dikosongkan agar diisi sendiri oleh pengguna)
   categories: {
-    income: [
-      "Gaji / Jatah Bulanan",
-      "Sumber Lainnya"
-    ],
-    expense: [
-      "Air dan Galon",
-      "Token Listrik",
-      "Dapur Umum & Beras",
-      "WiFi & Internet",
-      "Sewa / Kontrakan",
-      "Lain-lain"
-    ]
+    income: [],
+    expense: []
   },
-  transactions: [
-    {
-      id: "trx-1",
-      title: "Token Listrik Rumah",
-      amount: 100000,
-      type: "expense",
-      category: "Token Listrik",
-      walletId: "kas_bersama",
-      date: "2026-10-13",
-      notes: "• Token PLN Prabayar 50kWh: Rp 100.000\n• No Meter: 3201-9981-4451\n• Kode Stroom: 4521-8790-2341-9988\n• Bukti pembelian via m-Banking",
-      receiptImage: ""
-    },
-    {
-      id: "trx-2",
-      title: "Jatah Bulanan Anggota",
-      amount: 500000,
-      type: "income",
-      category: "Gaji / Jatah Bulanan",
-      walletId: "jatah_bulanan",
-      date: "2026-10-12",
-      notes: "• Setoran kas jatah bulanan kontrakan periode Oktober 2026",
-      receiptImage: ""
-    },
-    {
-      id: "trx-3",
-      title: "Isi Ulang Air & Galon",
-      amount: 40000,
-      type: "expense",
-      category: "Air dan Galon",
-      walletId: "kas_bersama",
-      date: "2026-10-11",
-      notes: "• Isi ulang air mineral 2 galon @ Rp 20.000 = Rp 40.000\n• Pembelian di Depot Air Berkah Jl. Melati",
-      receiptImage: ""
-    },
-    {
-      id: "trx-4",
-      title: "Setoran Kas Sumber Lain",
-      amount: 200000,
-      type: "income",
-      category: "Sumber Lainnya",
-      walletId: "sumber_lain",
-      date: "2026-10-10",
-      notes: "• Pengembalian uang sisa belanja konsumsi rapat bulan lalu",
-      receiptImage: ""
-    }
-  ]
+  // Transaksi Kosongan (Tanpa data awal kecuali ditambah oleh pengguna)
+  transactions: []
 };
 
 // Format Rupiah Tampilan (e.g. "Rp 150.000")

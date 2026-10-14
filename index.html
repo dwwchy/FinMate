@@ -71,16 +71,6 @@
             </button>
           </div>
 
-          <!-- Toggle Dark / Light Theme -->
-          <button
-            id="themeToggleBtn"
-            onclick="toggleTheme()"
-            class="p-1.5 rounded-lg border border-[var(--border-color)] bg-[var(--input-bg)] text-primary-var hover:border-sky-400 transition flex items-center justify-center shrink-0"
-            title="Ubah Tema (Dark/Light)"
-            aria-label="Toggle Dark / Light Theme"
-          >
-            <i data-lucide="moon" id="themeIcon" class="w-4 h-4"></i>
-          </button>
         </div>
 
       </div>
@@ -268,14 +258,19 @@
             </div>
           </div>
 
-          <!-- Kategori Transaksi -->
+          <!-- Kategori Transaksi (Diisi Sendiri oleh Pengguna) -->
           <div class="form-group">
             <label for="txCategory" class="form-label">Kategori Transaksi</label>
-            <select id="txCategory">
-              <!-- Diisi dinamis oleh JavaScript -->
-            </select>
+            <input
+              type="text"
+              id="txCategory"
+              list="txCategoryList"
+              placeholder="Tulis kategori (cth: Makanan, Listrik, Iuran, dll)..."
+              class="w-full text-xs sm:text-sm p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)] text-primary-var focus:border-sky-400 focus:ring-1 focus:ring-sky-400"
+            />
+            <datalist id="txCategoryList"></datalist>
             <p id="txCategoryHint" class="form-hint mt-0.5 text-[10.5px]">
-              Pemasukan memiliki 2 sumber: Gaji / Jatah Bulanan atau Sumber Lainnya.
+              Tulis kategori Anda sendiri atau pilih dari yang pernah dibuat.
             </p>
           </div>
 
@@ -297,31 +292,16 @@
                 <i data-lucide="file-text" class="w-3.5 h-3.5 text-sky-400"></i>
                 <span id="txNotesLabel" class="font-bold text-primary-var">Coretan Rincian / Uang Keluar Untuk Apa?</span>
               </label>
-              <button
-                type="button"
-                onclick="insertBulletPointToNotes('txNotes')"
-                class="text-[10px] font-bold text-sky-400 bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/30 px-2 py-0.5 rounded-md transition flex items-center gap-1 active:scale-95"
-                title="Klik untuk tambah simbol titik (•)"
-              >
-                <span>+ Titik (•)</span>
-              </button>
             </div>
             <textarea
               id="txNotes"
               rows="4"
-              placeholder="Klik di sini untuk langsung mencatat rincian dengan simbol (•)&#10;Contoh:&#10;• Beli beras 5kg: Rp 75.000&#10;• Minyak goreng 2L: Rp 34.000"
+              placeholder="Contoh:&#10;• Beli galon air: Rp 20.000&#10;• Token listrik: Rp 50.000"
               class="w-full text-xs font-mono p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)] focus:border-sky-400 focus:ring-1 focus:ring-sky-400 leading-relaxed resize-y"
               onfocus="handleBulletAutoInsertOnFocus(this)"
               onclick="handleBulletAutoInsertOnFocus(this)"
               onkeydown="handleBulletKeyDown(event, this)"
             ></textarea>
-            <div class="flex items-center justify-between text-[10px] text-secondary-var pt-0.5 px-0.5">
-              <span class="flex items-center gap-1 text-sky-400 font-medium">
-                <i data-lucide="sparkles" class="w-3 h-3"></i>
-                <span>Klik langsung ada simbol (•). Tekan <strong>Enter</strong> untuk baris baru.</span>
-              </span>
-              <span class="text-muted-var">Bukti Kas</span>
-            </div>
           </div>
 
           <!-- Upload Foto Bukti Nota / Kwitansi / Struk -->
@@ -828,7 +808,15 @@
         <!-- Kategori -->
         <div class="form-group">
           <label for="editTxCategory" class="form-label">Kategori</label>
-          <select id="editTxCategory"></select>
+          <input
+            type="text"
+            id="editTxCategory"
+            list="editTxCategoryList"
+            placeholder="Tulis / pilih kategori..."
+            class="w-full text-xs sm:text-sm p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)] text-primary-var focus:border-sky-400"
+            autocomplete="off"
+          />
+          <datalist id="editTxCategoryList"></datalist>
         </div>
 
         <!-- Rekening Kas -->
@@ -842,21 +830,13 @@
           <div class="flex items-center justify-between mb-0.5">
             <label for="editTxNotes" class="form-label flex items-center gap-1.5 cursor-pointer">
               <i data-lucide="file-text" class="w-3.5 h-3.5 text-sky-400"></i>
-              <span class="font-bold text-primary-var">Coretan Rincian Uang Keluar Untuk Apa?</span>
+              <span class="font-bold text-primary-var">Coretan Rincian / Uang Keluar Untuk Apa?</span>
             </label>
-            <button
-              type="button"
-              onclick="insertBulletPointToNotes('editTxNotes')"
-              class="text-[10px] font-bold text-sky-400 bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/30 px-2 py-0.5 rounded-md transition flex items-center gap-1 active:scale-95"
-              title="Tambah Simbol Titik (•)"
-            >
-              <span>+ Titik (•)</span>
-            </button>
           </div>
           <textarea
             id="editTxNotes"
             rows="3"
-            placeholder="• Beli beras 5kg: Rp 75.000&#10;• Minyak goreng 2L: Rp 34.000..."
+            placeholder="Contoh:&#10;• Beli galon air: Rp 20.000&#10;• Token listrik: Rp 50.000"
             class="w-full text-xs font-mono p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)] focus:border-sky-400 leading-relaxed resize-y"
             onfocus="handleBulletAutoInsertOnFocus(this)"
             onclick="handleBulletAutoInsertOnFocus(this)"
@@ -1164,7 +1144,7 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/data.js?v=3"></script>
-  <script src="js/app.js?v=3"></script>
+  <script src="js/data.js?v=5"></script>
+  <script src="js/app.js?v=5"></script>
 </body>
 </html>
