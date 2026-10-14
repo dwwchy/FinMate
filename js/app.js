@@ -947,10 +947,7 @@ function renderTransactionList() {
 
   container.innerHTML = list.map(tx => {
     const isIncome = tx.type === 'income';
-    const wallet = state.wallets.find(w => w.id === tx.walletId) || { name: 'Kas Bersama' };
-    const catIcon = getCategoryIcon(tx.category, tx.type);
-    const catEmoji = getCategoryEmoji(tx.category, tx.type);
-
+    const wallet = state.wallets.find(w => w.id === tx.walletId) || { name: 'Bank' };
     const hasProof = (tx.notes && tx.notes.trim()) || tx.receiptImage;
 
     return `
@@ -2136,9 +2133,11 @@ function launchRealGoogleOAuthPopup(clientId) {
       error_callback: (err) => {
         console.warn('Google OAuth error callback:', err);
         if (err && err.type === 'popup_blocked') {
-          showToast('Pop-up Google diblokir browser. Silakan izinkan pop-up di browser Anda.', 'warning');
+          showToast('Pop-up Google diblokir browser. Izinkan pop-up.', 'warning');
+        } else if (err && err.type === 'popup_closed') {
+          console.log('Jendela login Google ditutup pengguna.');
         } else {
-          showToast('Jendela login Google ditutup atau terjadi masalah koneksi.', 'info');
+          console.warn('Google auth warning:', err);
         }
       }
     });
@@ -2709,8 +2708,6 @@ async function completeDirectGoogleAccountLogin(name, email, picture = '', acces
   // Sinkronisasi data Google Drive (Jika diakses di perangkat lain, otomatis memulihkan transaksi)
   if (latestGoogleAccessToken) {
     try {
-      showToast('Menghubungkan ke folder FinMate di Google Drive...', 'info');
-
       // 1. Pastikan folder FinMate dibuat/ditemukan dan simpan ID foldernya
       const mainFolderId = await getOrCreateGoogleDriveFolder(latestGoogleAccessToken, DRIVE_MAIN_FOLDER_NAME);
       if (
@@ -2730,7 +2727,6 @@ async function completeDirectGoogleAccountLogin(name, email, picture = '', acces
       if (driveSnapshot && Array.isArray(driveSnapshot.transactions) && driveSnapshot.transactions.length > 0) {
         restoreFromSnapshotObject(driveSnapshot);
         await syncDriveBackupHistoryFromGoogle(latestGoogleAccessToken);
-        showToast(`Selamat datang, ${enteredName}! Data transaksi dari Google Drive berhasil dipulihkan.`, 'success');
       } else {
         const todayISO = getTodayLocalISO();
         const fileName = `Cadangan_Transaksi_${todayISO}.json`;
@@ -2741,7 +2737,6 @@ async function completeDirectGoogleAccountLogin(name, email, picture = '', acces
           saveState();
         }
         await syncDriveBackupHistoryFromGoogle(latestGoogleAccessToken);
-        showToast(`Selamat datang, ${enteredName}! Folder FinMate berhasil dibuat di Google Drive.`, 'success');
       }
       renderDashboard();
       renderTransactionList();
@@ -2756,7 +2751,7 @@ async function completeDirectGoogleAccountLogin(name, email, picture = '', acces
   runBackgroundDriveBackup(true);
   syncSharedDataNow(true);
 
-  showToast(`Selamat datang, ${enteredName}! Akun Google & Drive berhasil terhubung.`);
+  showToast(`Selamat datang, ${enteredName}! Akun Google terhubung.`, 'success');
 }
 
 function toggleGoogleOtherAccountInput() {
@@ -3084,6 +3079,15 @@ async function uploadBackupToRealGoogleDrive(accessToken, fileName, payloadObj) 
     }
     if (!mainFolderId) return null;
 
+    // Selalu perbarui master sync file agar perangkat lain dapat langsung membaca
+    const masterFile = await upsertJsonFileInDriveFolder(
+      accessToken,
+      mainFolderId,
+      'FinMate_Master_Sync.json',
+      payloadObj,
+      'Master Sync FinMate'
+    );
+
     const dailyFile = await upsertJsonFileInDriveFolder(
       accessToken,
       mainFolderId,
@@ -3091,17 +3095,6 @@ async function uploadBackupToRealGoogleDrive(accessToken, fileName, payloadObj) 
       payloadObj,
       'Cadangan Transaksi FinMate'
     );
-
-    let masterFile = null;
-    if (Array.isArray(payloadObj.transactions) && payloadObj.transactions.length > 0) {
-      masterFile = await upsertJsonFileInDriveFolder(
-        accessToken,
-        mainFolderId,
-        'FinMate_Master_Sync.json',
-        payloadObj,
-        'Master Sync FinMate'
-      );
-    }
 
     return {
       dailyFile: dailyFile || masterFile,
@@ -3116,8 +3109,32 @@ async function uploadBackupToRealGoogleDrive(accessToken, fileName, payloadObj) 
 async function fetchLatestBackupFromRealGoogleDrive(accessToken) {
   if (!accessToken) return null;
   try {
+    // 1. Cek langsung file master FinMate_Master_Sync.json
+    const masterQuery = encodeURIComponent("name = 'FinMate_Master_Sync.json' and trashed = false");
+    const masterRes = await fetch(
+      `https://www.googleapis.com/drive/v3/files?q=${masterQuery}&orderBy=modifiedTime desc&pageSize=1&fields=files(id,name,modifiedTime)`,
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+    if (masterRes.status === 401) return 'TOKEN_EXPIRED';
+    if (masterRes.ok) {
+      const masterData = await masterRes.json();
+      if (masterData.files && masterData.files.length > 0) {
+        const fileRes = await fetch(
+          `https://www.googleapis.com/drive/v3/files/${masterData.files[0].id}?alt=media`,
+          { headers: { Authorization: `Bearer ${accessToken}` } }
+        );
+        if (fileRes.ok) {
+          const snapshot = await fileRes.json();
+          if (snapshot && (Array.isArray(snapshot.transactions) || Array.isArray(snapshot.wallets))) {
+            return snapshot;
+          }
+        }
+      }
+    }
+
+    // 2. Fallback ke cadangan harian
     const query = encodeURIComponent(
-      "(name = 'FinMate_Master_Sync.json' or name contains 'Cadangan_Transaksi_' or name contains 'FinMate_') and trashed = false"
+      "(name contains 'Cadangan_Transaksi_' or name contains 'FinMate_') and trashed = false"
     );
     const listRes = await fetch(
       `https://www.googleapis.com/drive/v3/files?q=${query}&orderBy=modifiedTime desc&pageSize=5&fields=files(id,name,modifiedTime,parents)`,
@@ -3261,6 +3278,21 @@ function restoreFromSnapshotObject(snapshot, silent = false) {
   }
 }
 
+function mergeTransactions(localList, remoteList) {
+  const map = new Map();
+  // Masukkan remote transactions
+  (remoteList || []).forEach((tx) => {
+    if (tx && tx.id) map.set(tx.id, tx);
+  });
+  // Masukkan local transactions (catatan lokal tetap dipertahankan)
+  (localList || []).forEach((tx) => {
+    if (tx && tx.id) map.set(tx.id, tx);
+  });
+  const merged = Array.from(map.values());
+  merged.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+  return merged;
+}
+
 let isGoogleDriveSyncing = false;
 
 async function checkAndSyncLatestGoogleDriveDataSilent() {
@@ -3291,14 +3323,114 @@ async function checkAndSyncLatestGoogleDriveDataSilent() {
       const hasLengthDiff = driveTxs.length !== localTxs.length;
 
       if (hasNewTransactions || hasLengthDiff) {
-        restoreFromSnapshotObject(driveSnapshot, true);
-        showToast('Catatan transaksi kas telah diperbarui otomatis dari Google Drive!', 'info');
+        state.transactions = mergeTransactions(localTxs, driveTxs);
+
+        if (driveSnapshot.wallets && Array.isArray(driveSnapshot.wallets) && driveSnapshot.wallets.length > 0) {
+          state.wallets = driveSnapshot.wallets;
+        }
+        if (driveSnapshot.categories) {
+          const incSet = new Set([...(state.categories?.income || []), ...(driveSnapshot.categories.income || [])]);
+          const expSet = new Set([...(state.categories?.expense || []), ...(driveSnapshot.categories.expense || [])]);
+          state.categories = {
+            income: Array.from(incSet),
+            expense: Array.from(expSet)
+          };
+        }
+
+        saveState();
+        renderDashboard();
+        renderDompetTab();
+        renderTransactionList();
+        renderProfileTab();
+        if (window.lucide) window.lucide.createIcons();
+
+        showToast('Catatan transaksi kas baru telah disinkronkan otomatis!', 'info');
       }
     }
   } catch (e) {
     console.warn('Silent Google Drive sync check info:', e);
   } finally {
     isGoogleDriveSyncing = false;
+  }
+}
+
+async function handleManualLiveSync() {
+  const syncIcons = document.querySelectorAll('#headerQuickSyncBtn i, #dashQuickSyncBtn i');
+  syncIcons.forEach((icon) => icon.classList.add('animate-spin'));
+
+  if (!state.googleAccount || !state.googleAccount.email) {
+    showToast('Masuk akun Google di Profil untuk sinkronisasi', 'warning');
+    syncIcons.forEach((icon) => icon.classList.remove('animate-spin'));
+    openGoogleAuthModal(false);
+    return;
+  }
+
+  const token = latestGoogleAccessToken || (state.googleAccount && state.googleAccount.accessToken);
+  if (!token) {
+    syncIcons.forEach((icon) => icon.classList.remove('animate-spin'));
+    openGoogleAuthModal(false);
+    return;
+  }
+
+  try {
+    // 1. Ambil data terbaru dari Google Drive
+    const driveSnapshot = await fetchLatestBackupFromRealGoogleDrive(token);
+    if (driveSnapshot === 'TOKEN_EXPIRED') {
+      syncIcons.forEach((icon) => icon.classList.remove('animate-spin'));
+      showToast('Sesi Google kedaluwarsa, silakan login ulang', 'warning');
+      openGoogleAuthModal(false);
+      return;
+    }
+
+    let hasChanges = false;
+    if (driveSnapshot && Array.isArray(driveSnapshot.transactions)) {
+      const localTxs = state.transactions || [];
+      const driveTxs = driveSnapshot.transactions || [];
+      const localIds = new Set(localTxs.map((t) => t.id));
+      const hasNewRemoteTx = driveTxs.some((t) => !localIds.has(t.id));
+      const hasLengthDiff = driveTxs.length !== localTxs.length;
+
+      if (hasNewRemoteTx || hasLengthDiff) {
+        hasChanges = true;
+      }
+
+      state.transactions = mergeTransactions(localTxs, driveTxs);
+      if (driveSnapshot.wallets && Array.isArray(driveSnapshot.wallets) && driveSnapshot.wallets.length > 0) {
+        state.wallets = driveSnapshot.wallets;
+      }
+      if (driveSnapshot.categories) {
+        const incSet = new Set([...(state.categories?.income || []), ...(driveSnapshot.categories.income || [])]);
+        const expSet = new Set([...(state.categories?.expense || []), ...(driveSnapshot.categories.expense || [])]);
+        state.categories = {
+          income: Array.from(incSet),
+          expense: Array.from(expSet)
+        };
+      }
+    }
+
+    // 2. Unggah data hasil penggabungan ke Google Drive agar kedua perangkat sinkron
+    const todayISO = getTodayLocalISO();
+    const fileName = `Cadangan_Transaksi_${todayISO}.json`;
+    const payload = buildFullTransactionBackupPayload();
+    await uploadBackupToRealGoogleDrive(token, fileName, payload);
+
+    saveState();
+    renderDashboard();
+    renderDompetTab();
+    renderTransactionList();
+    renderProfileTab();
+    if (window.lucide) window.lucide.createIcons();
+
+    if (hasChanges) {
+      showToast('Transaksi kas berhasil disinkronkan!', 'success');
+    } else {
+      showToast('Data kas sudah yang terbaru.', 'success');
+    }
+  } catch (err) {
+    console.error('Manual live sync error:', err);
+    showToast('Gagal sinkron, periksa koneksi internet.', 'warning');
+  } finally {
+    syncIcons.forEach((icon) => icon.classList.remove('animate-spin'));
   }
 }
 
@@ -3707,23 +3839,23 @@ function showToast(message, type = 'success') {
   toast.id = 'finmateToast';
   toast.className = 'toast-banner';
 
-  const iconName = type === 'warning' ? 'alert-triangle' : 'check-circle-2';
-  const iconColor = type === 'warning' ? 'text-amber-400' : 'text-sky-400';
+  const iconName = type === 'warning' ? 'alert-circle' : type === 'info' ? 'info' : 'check-circle-2';
+  const iconColor = type === 'warning' ? 'text-amber-400' : type === 'info' ? 'text-sky-400' : 'text-emerald-400';
 
   toast.innerHTML = `
-    <i data-lucide="${iconName}" class="w-4 h-4 ${iconColor} shrink-0"></i>
-    <span>${escapeHtml(message)}</span>
+    <i data-lucide="${iconName}" class="w-3.5 h-3.5 ${iconColor} shrink-0"></i>
+    <span class="truncate max-w-[260px] sm:max-w-[420px] leading-tight">${escapeHtml(message)}</span>
   `;
 
   document.body.appendChild(toast);
-  lucide.createIcons();
+  if (window.lucide) window.lucide.createIcons();
 
   setTimeout(() => {
-    toast.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+    toast.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
     toast.style.opacity = '0';
-    toast.style.transform = 'translate(-50%, -10px)';
-    setTimeout(() => toast.remove(), 300);
-  }, 2600);
+    toast.style.transform = 'translate(-50%, -8px) scale(0.96)';
+    setTimeout(() => toast.remove(), 220);
+  }, 2200);
 }
 
 // ========================================================
@@ -3865,20 +3997,23 @@ function initApp() {
   // Sinkronisasi pembaruan transaksi dari Google Drive
   checkAndSyncLatestGoogleDriveDataSilent();
 
-  // Auto-polling pembaruan data berkala dari Google Drive dan server bersama
+  // Auto-polling pembaruan data berkala dari Google Drive (setiap 12 detik)
   if (sharedSyncPollingTimer) clearInterval(sharedSyncPollingTimer);
   sharedSyncPollingTimer = setInterval(() => {
     if (document.visibilityState === 'visible') {
       fetchSharedDataFromServer();
       checkAndSyncLatestGoogleDriveDataSilent();
     }
-  }, 25000);
+  }, 12000);
 
   // Deteksi ketika pengguna kembali membuka aplikasi / layar HP aktif
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
       checkAndSyncLatestGoogleDriveDataSilent();
     }
+  });
+  window.addEventListener('focus', () => {
+    checkAndSyncLatestGoogleDriveDataSilent();
   });
 
   // PWA Service Worker Registration

@@ -520,26 +520,48 @@ input:focus, select:focus, textarea:focus {
   background-color: rgba(15, 30, 54, 0.5);
 }
 
-/* Custom Toast Notification */
+/* Custom Minimalist Capsule Toast Notification */
 .toast-banner {
   position: fixed;
-  top: 16px;
+  top: 54px;
   left: 50%;
-  transform: translateX(-50%);
-  z-index: 999;
-  background-color: var(--bg-card);
-  border: 1px solid var(--pastel-blue-border);
-  box-shadow: 0 10px 30px -4px rgba(0, 0, 0, 0.5), 0 0 15px rgba(56, 189, 248, 0.2);
+  transform: translate(-50%, 0);
+  z-index: 9999;
+  background-color: rgba(15, 23, 42, 0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  box-shadow: 0 6px 20px -3px rgba(0, 0, 0, 0.5), 0 0 10px rgba(56, 189, 248, 0.15);
   border-radius: 9999px;
-  padding: 8px 18px;
-  display: flex;
+  padding: 5px 14px;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.785rem;
+  gap: 7px;
+  font-size: 0.725rem;
   font-weight: 600;
-  color: var(--text-primary);
-  animation: popIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  color: #f1f5f9;
+  max-width: calc(100vw - 32px);
+  white-space: nowrap;
+  animation: toastSlideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   pointer-events: none;
+}
+
+[data-theme="light"] .toast-banner {
+  background-color: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(14, 165, 233, 0.35);
+  box-shadow: 0 6px 20px -3px rgba(0, 0, 0, 0.12), 0 0 8px rgba(14, 165, 233, 0.1);
+  color: #0f172a;
+}
+
+@keyframes toastSlideDown {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -8px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
 }
 
 /* ========================================================
@@ -632,13 +654,14 @@ input:focus, select:focus, textarea:focus {
   background-color: var(--input-bg);
   border: 1px solid var(--border-color);
   border-radius: 9999px;
-  padding: 2px 4px;
-  gap: 4px;
+  padding: 1.5px 3px;
+  gap: 2px;
+  flex-shrink: 0;
 }
 
 .month-nav-btn {
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   border-radius: 9999px;
   display: flex;
   align-items: center;
@@ -646,11 +669,23 @@ input:focus, select:focus, textarea:focus {
   color: var(--text-secondary);
   transition: all 0.15s ease;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .month-nav-btn:hover {
   background-color: var(--pastel-blue-subtle);
   color: var(--pastel-blue-primary);
+}
+
+@media (min-width: 640px) {
+  .month-navigator {
+    padding: 2px 4px;
+    gap: 4px;
+  }
+  .month-nav-btn {
+    width: 26px;
+    height: 26px;
+  }
 }
 
 /* ========================================================

@@ -29,7 +29,7 @@
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <!-- Custom Pastel Blue Stylesheet -->
-  <link rel="stylesheet" href="css/styles.css?v=77" />
+  <link rel="stylesheet" href="css/styles.css?v=79" />
 
   <!-- Google Identity Services (Google Sign-In SDK) -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -38,39 +38,50 @@
 
   <!-- ================= TOP HEADER ================= -->
   <header class="sticky top-0 z-30 border-b border-[var(--border-color)] bg-[var(--bg-header)] backdrop-blur-xl transition-colors w-full overflow-hidden">
-    <div class="max-w-[800px] mx-auto px-3 sm:px-4 py-2 sm:py-2.5 w-full">
-      <div class="flex items-center justify-between gap-2 w-full">
+    <div class="max-w-[800px] mx-auto px-2.5 sm:px-4 py-2 sm:py-2.5 w-full">
+      <div class="flex items-center justify-between gap-1.5 sm:gap-2 w-full">
         
         <!-- Sisi Kiri: Logo + FinMate + Tracker Keuangan Bersama (Terkunci & Tidak Terpotong) -->
-        <div class="flex items-center gap-2 sm:gap-2.5 shrink-0">
-          <div class="w-8 h-8 rounded-xl overflow-hidden shadow-md shadow-sky-500/25 shrink-0 flex items-center justify-center bg-[#0284C7]">
+        <div class="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl overflow-hidden shadow-md shadow-sky-500/25 shrink-0 flex items-center justify-center bg-[#0284C7]">
             <img src="./icon.svg" alt="FinMate" class="w-full h-full object-cover" />
           </div>
           <div class="flex flex-col leading-tight">
-            <h1 class="text-base font-extrabold tracking-tight text-primary-var whitespace-nowrap">
+            <h1 class="text-sm sm:text-base font-extrabold tracking-tight text-primary-var whitespace-nowrap">
               Fin<span class="text-sky-400">Mate</span>
             </h1>
-            <p id="headerContextText" class="text-[10px] text-secondary-var whitespace-nowrap">
+            <p id="headerContextText" class="text-[8.5px] sm:text-[10px] text-secondary-var whitespace-nowrap">
               Tracker Keuangan Bersama
             </p>
           </div>
         </div>
 
-        <!-- Sisi Kanan: Penggeser Periode Bulan & Toggle Tema -->
-        <div class="flex items-center gap-2 shrink-0">
+        <!-- Sisi Kanan: Penggeser Periode Bulan & Tombol Sinkron Kas -->
+        <div class="flex items-center gap-1 sm:gap-1.5 shrink-0">
           <!-- Month Period Switcher di Header (Dengan Penguncian Bulan Awal) -->
           <div class="month-navigator">
             <button id="prevMonthBtn" type="button" onclick="changeMonthPeriod(-1)" class="month-nav-btn" title="Bulan Sebelumnya">
-              <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
+              <i data-lucide="chevron-left" class="w-3 h-3 sm:w-3.5 sm:h-3.5"></i>
             </button>
-            <span id="currentPeriodLabel" class="text-[11px] font-bold text-primary-var px-1.5 whitespace-nowrap">
+            <span id="currentPeriodLabel" class="text-[10px] sm:text-[11px] font-bold text-primary-var px-1 sm:px-1.5 whitespace-nowrap">
               Oktober 2026
             </span>
             <button id="nextMonthBtn" type="button" onclick="changeMonthPeriod(1)" class="month-nav-btn" title="Bulan Berikutnya">
-              <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+              <i data-lucide="chevron-right" class="w-3 h-3 sm:w-3.5 sm:h-3.5"></i>
             </button>
           </div>
 
+          <!-- Tombol Sinkron Ikon Saja di Sebelah Kalender (Pojok Kanan Atas) -->
+          <button
+            type="button"
+            id="headerQuickSyncBtn"
+            onclick="handleManualLiveSync()"
+            class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[var(--input-bg)] hover:bg-sky-500/20 active:scale-90 text-sky-400 border border-[var(--border-color)] hover:border-sky-400/40 flex items-center justify-center transition cursor-pointer shadow-sm shrink-0"
+            title="Sinkronkan Transaksi Kas Bersama"
+            aria-label="Sinkronkan Transaksi Kas Bersama"
+          >
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+          </button>
         </div>
 
       </div>
@@ -97,7 +108,7 @@
           </div>
         </div>
         <div class="flex items-center gap-1.5 shrink-0">
-          <span id="dashGroupBadge" class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-sky-500/15 text-sky-400 border border-sky-400/30 whitespace-nowrap">
+          <span id="dashGroupBadge" class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700 whitespace-nowrap">
             Kas Bersama
           </span>
         </div>
@@ -1164,7 +1175,7 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/data.js?v=8"></script>
-  <script src="js/app.js?v=8"></script>
+  <script src="js/data.js?v=13"></script>
+  <script src="js/app.js?v=13"></script>
 </body>
 </html>
