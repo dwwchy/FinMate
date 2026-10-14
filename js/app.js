@@ -3123,6 +3123,7 @@ async function fetchLatestBackupFromRealGoogleDrive(accessToken) {
       `https://www.googleapis.com/drive/v3/files?q=${query}&orderBy=modifiedTime desc&pageSize=5&fields=files(id,name,modifiedTime,parents)`,
       { headers: { Authorization: `Bearer ${accessToken}` } }
     );
+    if (listRes.status === 401) return 'TOKEN_EXPIRED';
     if (!listRes.ok) return null;
     const listData = await listRes.json();
     if (!listData.files || listData.files.length === 0) return null;
@@ -3135,7 +3136,7 @@ async function fetchLatestBackupFromRealGoogleDrive(accessToken) {
         );
         if (fileRes.ok) {
           const snapshot = await fileRes.json();
-          if (snapshot && Array.isArray(snapshot.transactions) && snapshot.transactions.length > 0) {
+          if (snapshot && (Array.isArray(snapshot.transactions) || Array.isArray(snapshot.wallets))) {
             return snapshot;
           }
         }
@@ -3232,7 +3233,7 @@ function buildFullTransactionBackupPayload() {
   };
 }
 
-function restoreFromSnapshotObject(snapshot) {
+function restoreFromSnapshotObject(snapshot, silent = false) {
   if (!snapshot) return;
   if (Array.isArray(snapshot.transactions)) {
     state.transactions = snapshot.transactions;
@@ -3255,7 +3256,50 @@ function restoreFromSnapshotObject(snapshot) {
   renderTransactionList();
   renderProfileTab();
   if (window.lucide) window.lucide.createIcons();
-  showToast('Data transaksi berhasil dipulihkan!');
+  if (!silent) {
+    showToast('Data transaksi berhasil dipulihkan!');
+  }
+}
+
+let isGoogleDriveSyncing = false;
+
+async function checkAndSyncLatestGoogleDriveDataSilent() {
+  if (isGoogleDriveSyncing) return;
+  if (!navigator.onLine) return;
+  if (!state || !state.googleAccount || !state.googleAccount.email) return;
+
+  const token = latestGoogleAccessToken || (state.googleAccount && state.googleAccount.accessToken);
+  if (!token) return;
+
+  isGoogleDriveSyncing = true;
+  try {
+    const driveSnapshot = await fetchLatestBackupFromRealGoogleDrive(token);
+    if (driveSnapshot === 'TOKEN_EXPIRED') {
+      if (googleTokenClient) {
+        try { googleTokenClient.requestAccessToken({ prompt: '' }); } catch (_) {}
+      }
+      return;
+    }
+
+    if (driveSnapshot && Array.isArray(driveSnapshot.transactions)) {
+      const localTxs = state.transactions || [];
+      const driveTxs = driveSnapshot.transactions || [];
+
+      // Periksa apakah ada perbedaan data antara Google Drive dan lokal
+      const localIds = new Set(localTxs.map((t) => t.id));
+      const hasNewTransactions = driveTxs.some((t) => !localIds.has(t.id));
+      const hasLengthDiff = driveTxs.length !== localTxs.length;
+
+      if (hasNewTransactions || hasLengthDiff) {
+        restoreFromSnapshotObject(driveSnapshot, true);
+        showToast('Catatan transaksi kas telah diperbarui otomatis dari Google Drive!', 'info');
+      }
+    }
+  } catch (e) {
+    console.warn('Silent Google Drive sync check info:', e);
+  } finally {
+    isGoogleDriveSyncing = false;
+  }
 }
 
 async function handleRestoreTransactionsFromDrive() {
@@ -3818,13 +3862,24 @@ function initApp() {
   // Ambil data bersama dari server jika ada
   fetchSharedDataFromServer();
 
-  // Auto-polling pembaruan data bersama berkala
+  // Sinkronisasi pembaruan transaksi dari Google Drive
+  checkAndSyncLatestGoogleDriveDataSilent();
+
+  // Auto-polling pembaruan data berkala dari Google Drive dan server bersama
   if (sharedSyncPollingTimer) clearInterval(sharedSyncPollingTimer);
   sharedSyncPollingTimer = setInterval(() => {
-    if (state.auth?.isLoggedIn && document.visibilityState === 'visible') {
+    if (document.visibilityState === 'visible') {
       fetchSharedDataFromServer();
+      checkAndSyncLatestGoogleDriveDataSilent();
     }
-  }, 20000);
+  }, 25000);
+
+  // Deteksi ketika pengguna kembali membuka aplikasi / layar HP aktif
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      checkAndSyncLatestGoogleDriveDataSilent();
+    }
+  });
 
   // PWA Service Worker Registration
   if ('serviceWorker' in navigator) {
