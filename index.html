@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#38BDF8" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="icon.svg" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <title>FinMate — Tracker Keuangan Bersama</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Custom Pastel Blue Stylesheet -->
+  <link rel="stylesheet" href="css/styles.css?v=76" />
+
+  <!-- Google Identity Services (Google Sign-In SDK) -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body class="antialiased pb-24">
+
+  <!-- ================= TOP HEADER ================= -->
+  <header class="sticky top-0 z-30 border-b border-[var(--border-color)] bg-[var(--bg-header)] backdrop-blur-xl transition-colors">
+    <div class="max-w-[800px] mx-auto px-4 py-2.5">
+      <div class="flex items-center justify-between gap-3">
+        
+        <!-- Sisi Kiri: Logo + FinMate -->
+        <div class="flex items-center gap-2.5 shrink-0 min-w-max">
+          <div class="w-8 h-8 rounded-xl overflow-hidden shadow-md shadow-sky-500/25 shrink-0 flex items-center justify-center bg-[#0284C7]">
+            <img src="./icon.svg" alt="FinMate" class="w-full h-full object-cover" />
+          </div>
+          <div class="flex flex-col leading-tight">
+            <h1 class="text-base font-extrabold tracking-tight text-primary-var whitespace-nowrap">
+              Fin<span class="text-sky-400">Mate</span>
+            </h1>
+            <p id="headerContextText" class="text-[10px] text-secondary-var whitespace-nowrap">
+              Tracker Keuangan Bersama
+            </p>
+          </div>
+        </div>
+
+        <!-- Sisi Kanan: Penggeser Periode Bulan & Toggle Tema -->
+        <div class="flex items-center gap-2 shrink-0">
+          <!-- Month Period Switcher di Header (Dengan Penguncian Bulan Awal) -->
+          <div class="month-navigator">
+            <button id="prevMonthBtn" type="button" onclick="changeMonthPeriod(-1)" class="month-nav-btn" title="Bulan Sebelumnya">
+              <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
+            </button>
+            <span id="currentPeriodLabel" class="text-[11px] font-bold text-primary-var px-1.5 whitespace-nowrap">
+              Oktober 2026
+            </span>
+            <button id="nextMonthBtn" type="button" onclick="changeMonthPeriod(1)" class="month-nav-btn" title="Bulan Berikutnya">
+              <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+
+          <!-- Tombol Install PWA Pojok Atas (Persis Model Tracker Keuangan & UTBK) -->
+          <button
+            id="btn-install-pwa"
+            onclick="installPwaApp()"
+            class="btn-install-pwa hidden bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-extrabold px-2.5 py-1.5 rounded-lg text-xs shadow-sm transition whitespace-nowrap items-center gap-1.5 cursor-pointer"
+            title="Install Aplikasi di HP / Laptop"
+          >
+            <span>📲</span>
+            <span>Install</span>
+          </button>
+
+          <!-- Toggle Dark / Light Theme -->
+          <button
+            id="themeToggleBtn"
+            onclick="toggleTheme()"
+            class="p-1.5 rounded-lg border border-[var(--border-color)] bg-[var(--input-bg)] text-primary-var hover:border-sky-400 transition flex items-center justify-center shrink-0"
+            title="Ubah Tema (Dark/Light)"
+            aria-label="Toggle Dark / Light Theme"
+          >
+            <i data-lucide="moon" id="themeIcon" class="w-4 h-4"></i>
+          </button>
+
+          <!-- Google / Cloud Sync Quick Indicator Button -->
+          <button
+            id="headerGoogleSyncBtn"
+            onclick="handleHeaderGoogleSyncClick()"
+            class="p-1.5 rounded-lg border border-[var(--border-color)] bg-[var(--input-bg)] text-secondary-var hover:border-sky-400 hover:text-sky-400 transition flex items-center gap-1.5 shrink-0"
+            title="Status Akun Google & Keuangan Bersama"
+            aria-label="Status Akun Google"
+          >
+            <div id="headerAuthAvatarContainer" class="w-4 h-4 rounded-full flex items-center justify-center overflow-hidden">
+              <i data-lucide="cloud" id="headerCloudIcon" class="w-4 h-4"></i>
+            </div>
+            <span id="headerAuthBadge" class="w-2 h-2 rounded-full bg-slate-400"></span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= KONTEN UTAMA ================= -->
+  <main class="max-w-[800px] mx-auto px-4 pt-4 pb-24">
+
+    <!-- =======================================================================
+         TAB 1: RINGKASAN & METRIK ARUS KAS (DASHBOARD)
+         ======================================================================= -->
+    <div id="tabSection-dashboard" class="tab-section space-y-3.5">
+      
+      <!-- 1.0 Tanggal Awal Buka & Status Periode -->
+      <section class="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] shadow-sm">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-7 h-7 rounded-lg bg-sky-500/15 border border-sky-400/20 flex items-center justify-center text-sky-400 shrink-0">
+            <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+          </div>
+          <div class="text-[11px] leading-tight min-w-0 truncate">
+            <span class="text-secondary-var">Aktif Sejak: </span>
+            <span id="dashFirstOpenedDate" class="font-bold text-primary-var">13 Oktober 2026</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5 shrink-0">
+          <span id="dashGroupBadge" class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-sky-500/15 text-sky-400 border border-sky-400/30 whitespace-nowrap">
+            Kas Bersama
+          </span>
+        </div>
+      </section>
+
+      <!-- 1.05 KARTU SISA SALDO BULAN SEBELUMNYA (ROLLOVER) -->
+      <section id="rolloverCardSection" class="px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-sky-500/10 via-indigo-500/10 to-sky-500/5 border border-sky-400/25 flex items-center justify-between">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <span class="text-base shrink-0">📦</span>
+          <div>
+            <div class="text-[11px] font-bold text-primary-var" id="rolloverTitle">Sisa Saldo Bulan Lalu</div>
+            <div class="text-[10px] text-secondary-var" id="rolloverDesc">Rollover otomatis dari sisa kas bulan sebelumnya</div>
+          </div>
+        </div>
+        <div class="text-right shrink-0">
+          <span class="text-xs sm:text-sm font-extrabold font-mono-num text-sky-400" id="dashRolloverBalance">Rp 0</span>
+        </div>
+      </section>
+
+      <!-- 1.1 Metrik Ringkasan Utama Bulan Ini -->
+      <section aria-label="Ringkasan Metrik Arus Kas">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          
+          <!-- Saldo Total Tersedia (Sisa Bulan Lalu + Surplus Bulan Ini) -->
+          <div class="app-card flex flex-col justify-between">
+            <div class="flex items-center justify-between text-secondary-var text-[11px] font-bold mb-1">
+              <span>TOTAL SALDO TERSEDIA</span>
+              <i data-lucide="shield-check" class="w-3.5 h-3.5 text-sky-400"></i>
+            </div>
+            <div class="text-xl sm:text-2xl font-extrabold font-mono-num text-primary-var" id="metricTotalBalance">
+              Rp 0
+            </div>
+            <div class="text-[10.5px] text-secondary-var mt-1.5 flex items-center justify-between">
+              <span id="metricPeriodName">Periode Oktober 2026</span>
+              <span class="text-sky-400 font-bold" id="metricNetStatus">+Surplus</span>
+            </div>
+          </div>
+
+          <!-- Total Pemasukan Bulan Ini -->
+          <div class="app-card flex flex-col justify-between">
+            <div class="flex items-center justify-between text-secondary-var text-[11px] font-bold mb-1">
+              <span>PEMASUKAN BULAN INI</span>
+              <i data-lucide="arrow-down-left" class="w-3.5 h-3.5 text-emerald-400"></i>
+            </div>
+            <div class="text-xl sm:text-2xl font-extrabold font-mono-num text-emerald-400" id="metricTotalIncome">
+              Rp 0
+            </div>
+            <div class="text-[10.5px] text-secondary-var mt-1.5">
+              Jatah bulanan & sumber lainnya
+            </div>
+          </div>
+
+          <!-- Total Pengeluaran Bulan Ini -->
+          <div class="app-card flex flex-col justify-between">
+            <div class="flex items-center justify-between text-secondary-var text-[11px] font-bold mb-1">
+              <span>PENGELUARAN BULAN INI</span>
+              <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-rose-400"></i>
+            </div>
+            <div class="text-xl sm:text-2xl font-extrabold font-mono-num text-rose-400" id="metricTotalExpense">
+              Rp 0
+            </div>
+            <div class="text-[10.5px] text-secondary-var mt-1.5">
+              Kas bersama, air galon, listrik, dll
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- 1.2 Aktivitas Terkini & Tombol Pintas -->
+      <section class="app-card space-y-3" aria-label="Aktivitas Terkini">
+        <div class="flex items-center justify-between border-b border-[var(--border-subtle)] pb-2">
+          <h2 class="text-xs sm:text-sm font-bold text-primary-var flex items-center gap-1.5">
+            <i data-lucide="clock" class="w-4 h-4 text-sky-400"></i>
+            <span id="recentTxHeader">Transaksi Periode Ini</span>
+          </h2>
+          <div class="flex items-center gap-2 shrink-0">
+            <button
+              onclick="switchTab('transaksi')"
+              class="btn-primary text-xs py-1.5 px-3 h-8 whitespace-nowrap flex items-center gap-1.5"
+            >
+              <i data-lucide="plus" class="w-3.5 h-3.5 shrink-0"></i>
+              <span class="whitespace-nowrap font-bold">Catat Baru</span>
+            </button>
+            <button
+              onclick="switchTab('riwayat')"
+              class="text-xs font-bold text-sky-400 hover:underline ml-1 whitespace-nowrap"
+            >
+              Lihat Semua
+            </button>
+          </div>
+        </div>
+
+        <div id="dashRecentTransactions" class="divide-y divide-[var(--border-subtle)]">
+          <!-- Rendered via JavaScript -->
+        </div>
+      </section>
+
+    </div>
+
+
+    <!-- =======================================================================
+         TAB 2: CATAT TRANSAKSI KAS BERSAMA
+         ======================================================================= -->
+    <div id="tabSection-transaksi" class="tab-section hidden max-w-md mx-auto space-y-3">
+      <div class="app-card space-y-3.5">
+        
+        <!-- Header Form Rapi -->
+        <div class="border-b border-[var(--border-subtle)] pb-2 flex items-center justify-between">
+          <h2 class="text-sm font-bold text-primary-var flex items-center gap-1.5">
+            <i data-lucide="plus-circle" class="w-4 h-4 text-sky-400"></i>
+            <span>Form Catat Transaksi</span>
+          </h2>
+          <span class="text-[10px] text-secondary-var">Cepat & Otomatis</span>
+        </div>
+
+        <form id="txForm" novalidate onsubmit="handleSaveTransaction(event)" class="space-y-3">
+          
+          <!-- Tipe Transaksi (Pills Rapi) -->
+          <div class="form-group">
+            <label class="form-label">Tipe Transaksi</label>
+            <div class="grid grid-cols-2 gap-2">
+              <label class="type-radio-pill has-[:checked]:border-rose-400 has-[:checked]:bg-rose-500/15 has-[:checked]:text-rose-400">
+                <input type="radio" name="txType" value="expense" checked class="hidden" onchange="updateFormTypeVisual()" />
+                <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+                <span class="whitespace-nowrap font-bold">Pengeluaran</span>
+              </label>
+              <label class="type-radio-pill has-[:checked]:border-emerald-400 has-[:checked]:bg-emerald-500/15 has-[:checked]:text-emerald-400">
+                <input type="radio" name="txType" value="income" class="hidden" onchange="updateFormTypeVisual()" />
+                <i data-lucide="arrow-down-left" class="w-3.5 h-3.5"></i>
+                <span class="whitespace-nowrap font-bold">Pemasukan</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Nominal & Tanggal -->
+          <div class="grid grid-cols-2 gap-2">
+            <div class="form-group">
+              <label for="txAmount" class="form-label">Nominal (Rp)</label>
+              <div class="input-currency-group">
+                <span class="currency-prefix">Rp</span>
+                <input
+                  type="text"
+                  inputmode="numeric"
+                  id="txAmount"
+                  placeholder="0"
+                  class="currency-input"
+                  autocomplete="off"
+                />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="txDate" class="form-label">Tanggal</label>
+              <input
+                type="date"
+                id="txDate"
+              />
+            </div>
+          </div>
+
+          <!-- Kategori Transaksi -->
+          <div class="form-group">
+            <label for="txCategory" class="form-label">Kategori Transaksi</label>
+            <select id="txCategory">
+              <!-- Diisi dinamis oleh JavaScript -->
+            </select>
+            <p id="txCategoryHint" class="form-hint mt-0.5 text-[10.5px]">
+              Pemasukan memiliki 2 sumber: Gaji / Jatah Bulanan atau Sumber Lainnya.
+            </p>
+          </div>
+
+          <!-- Rekening Kas / Sumber Dana -->
+          <div class="form-group">
+            <label for="txWalletSelect" class="form-label">Rekening Kas / Sumber Dana</label>
+            <select id="txWalletSelect">
+              <!-- Diisi dinamis dari daftar dompet -->
+            </select>
+            <p class="form-hint mt-0.5 text-[10.5px]">
+              Pilih rekening kas yang digunakan (Kas Utama, Jatah Bulanan, Sumber Lain, dll).
+            </p>
+          </div>
+
+          <!-- Coretan Rincian Pengeluaran / Nota (Bukti Transaksi Otomatis) -->
+          <div class="form-group">
+            <div class="flex items-center justify-between mb-0.5">
+              <label for="txNotes" class="form-label flex items-center gap-1.5 cursor-pointer">
+                <i data-lucide="file-text" class="w-3.5 h-3.5 text-sky-400"></i>
+                <span id="txNotesLabel" class="font-bold text-primary-var">Coretan Rincian / Uang Keluar Untuk Apa?</span>
+              </label>
+              <button
+                type="button"
+                onclick="insertBulletPointToNotes('txNotes')"
+                class="text-[10px] font-bold text-sky-400 bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/30 px-2 py-0.5 rounded-md transition flex items-center gap-1 active:scale-95"
+                title="Klik untuk tambah simbol titik (•)"
+              >
+                <span>+ Titik (•)</span>
+              </button>
+            </div>
+            <textarea
+              id="txNotes"
+              rows="4"
+              placeholder="Klik di sini untuk langsung mencatat rincian dengan simbol (•)&#10;Contoh:&#10;• Beli beras 5kg: Rp 75.000&#10;• Minyak goreng 2L: Rp 34.000"
+              class="w-full text-xs font-mono p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)] focus:border-sky-400 focus:ring-1 focus:ring-sky-400 leading-relaxed resize-y"
+              onfocus="handleBulletAutoInsertOnFocus(this)"
+              onclick="handleBulletAutoInsertOnFocus(this)"
+              onkeydown="handleBulletKeyDown(event, this)"
+            ></textarea>
+            <div class="flex items-center justify-between text-[10px] text-secondary-var pt-0.5 px-0.5">
+              <span class="flex items-center gap-1 text-sky-400 font-medium">
+                <i data-lucide="sparkles" class="w-3 h-3"></i>
+                <span>Klik langsung ada simbol (•). Tekan <strong>Enter</strong> untuk baris baru.</span>
+              </span>
+              <span class="text-muted-var">Bukti Kas</span>
+            </div>
+          </div>
+
+          <!-- Upload Foto Bukti Nota / Kwitansi / Struk -->
+          <div class="form-group">
+            <label class="form-label flex items-center justify-between">
+              <span class="flex items-center gap-1.5">
+                <i data-lucide="camera" class="w-3.5 h-3.5 text-sky-400"></i>
+                <span>Foto Bukti Nota / Kwitansi (Opsional)</span>
+              </span>
+              <span class="text-[10px] text-secondary-var">Gambar</span>
+            </label>
+
+            <div class="receipt-upload-box">
+              <input
+                type="file"
+                id="txReceiptInput"
+                accept="image/*"
+                class="hidden"
+                onchange="handleReceiptFileSelect(event, 'new')"
+              />
+
+              <!-- Area Belum Pilih Gambar -->
+              <div
+                id="txReceiptEmptyState"
+                onclick="document.getElementById('txReceiptInput').click()"
+                class="cursor-pointer p-3 border-2 border-dashed border-[var(--border-color)] hover:border-sky-400 rounded-xl bg-[var(--input-bg)] text-center transition space-y-1"
+              >
+                <i data-lucide="image-plus" class="w-6 h-6 mx-auto text-sky-400"></i>
+                <div class="text-xs font-bold text-primary-var">Pilih / Foto Nota Transaksi</div>
+                <p class="text-[10.5px] text-secondary-var">Klik untuk upload foto struk, nota belanja, atau coretan kertas</p>
+              </div>
+
+              <!-- Pratinjau Gambar Setelah Dipilih -->
+              <div id="txReceiptPreviewContainer" class="hidden relative rounded-xl overflow-hidden border border-sky-400/40 bg-[var(--input-bg)] p-2">
+                <div class="relative max-h-44 overflow-hidden rounded-lg bg-black/30 flex items-center justify-center">
+                  <img id="txReceiptPreviewImg" src="" alt="Pratinjau Nota" class="max-h-44 object-contain rounded" />
+                </div>
+                <div class="mt-2 flex items-center justify-between text-[11px] px-1">
+                  <span id="txReceiptFileName" class="text-sky-400 font-bold truncate max-w-[200px]">nota.jpg</span>
+                  <button
+                    type="button"
+                    onclick="removeReceiptPhoto('new')"
+                    class="text-rose-400 hover:text-rose-300 font-bold flex items-center gap-1"
+                  >
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                    <span>Hapus Foto</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tombol Simpan Transaksi -->
+          <button type="submit" class="btn-primary w-full mt-2 h-9 text-xs">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span>Simpan Transaksi</span>
+          </button>
+        </form>
+      </div>
+    </div>
+
+
+    <!-- =======================================================================
+         TAB 3: MANAJEMEN REKENING KAS / DOMPET & SUMBER DANA BARU
+         ======================================================================= -->
+    <div id="tabSection-dompet" class="tab-section hidden space-y-4">
+      
+      <!-- Header Dompet & Tombol Tambah Rekening Baru -->
+      <div class="flex items-center justify-between border-b border-[var(--border-subtle)] pb-2.5">
+        <div>
+          <h2 class="text-xs sm:text-sm font-bold text-primary-var flex items-center gap-1.5">
+            <i data-lucide="wallet-cards" class="w-4 h-4 text-sky-400"></i>
+            <span>Daftar Rekening Kas & Sumber Dana</span>
+          </h2>
+          <p class="text-[10px] text-secondary-var">Kas Bersama, Jatah Bulanan, Sumber Lainnya, dan rekening tambahan</p>
+        </div>
+        <button
+          onclick="openAddWalletModal()"
+          class="btn-primary text-xs py-1.5 px-3 h-8 whitespace-nowrap flex items-center gap-1.5"
+        >
+          <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+          <span>Tambah Rekening</span>
+        </button>
+      </div>
+
+      <!-- Container Daftar Rekening / Dompet -->
+      <div id="walletListContainer" class="space-y-3">
+        <!-- Rendered via JavaScript -->
+      </div>
+
+    </div>
+
+
+    <!-- =======================================================================
+         TAB 4: RIWAYAT TRANSAKSI DENGAN FILTER & CRUD (EDIT / HAPUS)
+         ======================================================================= -->
+    <div id="tabSection-riwayat" class="tab-section hidden space-y-3">
+      <div class="app-card space-y-3">
+        
+        <!-- Header Riwayat & Ekspor -->
+        <div class="flex items-center justify-between border-b border-[var(--border-subtle)] pb-2">
+          <div>
+            <h2 class="text-xs sm:text-sm font-bold text-primary-var flex items-center gap-1.5">
+              <i data-lucide="history" class="w-4 h-4 text-sky-400"></i>
+              <span>Riwayat Transaksi</span>
+            </h2>
+            <p class="text-[10px] text-secondary-var" id="txHistorySubtitle">
+              Daftar seluruh transaksi pada periode aktif
+            </p>
+          </div>
+
+          <div class="flex items-center gap-1.5">
+            <button
+              onclick="exportToCsv()"
+              class="btn-secondary text-xs h-7 px-2.5 whitespace-nowrap"
+              title="Ekspor ke CSV"
+            >
+              <i data-lucide="download" class="w-3 h-3 text-sky-400"></i>
+              <span>CSV</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter Toolbar -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div>
+            <input
+              type="text"
+              id="filterSearch"
+              placeholder="Cari transaksi..."
+              oninput="renderTransactionList()"
+              class="h-8 text-xs"
+            />
+          </div>
+          <div>
+            <select id="filterCategory" onchange="renderTransactionList()" class="h-8 text-xs">
+              <option value="all">Semua Kategori</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Petunjuk & Jumlah Transaksi -->
+        <div class="text-[10.5px] text-secondary-var flex items-center justify-between px-1">
+          <span>Klik ikon pensil untuk <strong>Edit</strong> atau tempat sampah untuk <strong>Hapus</strong></span>
+          <span id="txHistoryCount" class="font-bold text-sky-400">0 Transaksi</span>
+        </div>
+
+        <!-- Daftar Transaksi Lengkap -->
+        <div id="transactionListContainer" class="divide-y divide-[var(--border-subtle)] min-h-[160px]">
+          <!-- Rendered via JavaScript -->
+        </div>
+
+      </div>
+    </div>
+
+
+    <!-- =======================================================================
+         TAB 5: PROFIL PENGGUNA & CADANGAN DATA
+         ======================================================================= -->
+    <div id="tabSection-profil" class="tab-section hidden max-w-md mx-auto space-y-4">
+      
+      <!-- 5.0 CADANGAN OTOMATIS DI GOOGLE DRIVE & AKUN BERSAMA -->
+      <div class="app-card space-y-4 border-sky-400/30 bg-gradient-to-b from-[var(--bg-card)] to-sky-950/20 shadow-lg shadow-sky-950/30">
+        <div class="flex items-center justify-between gap-2 pb-3 border-b border-[var(--border-subtle)]">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-9 h-9 rounded-xl bg-sky-500/15 border border-sky-400/30 flex items-center justify-center text-sky-400 shrink-0">
+              <i data-lucide="cloud-upload" class="w-4 h-4"></i>
+            </div>
+            <div class="min-w-0">
+              <h2 class="text-xs sm:text-sm font-bold text-primary-var truncate">Cadangan Otomatis di Google Drive</h2>
+              <p class="text-[10.5px] text-secondary-var truncate">Cadangkan transaksi kas otomatis ke Drive agar aman saat ganti HP</p>
+            </div>
+          </div>
+          <span id="driveAuthBadge" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700 shrink-0 whitespace-nowrap">
+            Belum Login
+          </span>
+        </div>
+
+        <!-- Area Status Akun Google (Rendered via JS: Belum Login vs Sudah Login) -->
+        <div id="googleAccountCardArea">
+          <!-- Rendered via JavaScript -->
+        </div>
+
+        <!-- Status Cadangan Otomatis -->
+        <div class="space-y-2">
+          <div
+            id="autoSyncLiveStatusBanner"
+            class="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 flex items-start gap-2.5 text-[11px] text-slate-300"
+          >
+            <i data-lucide="cloud-check" class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5"></i>
+            <div class="min-w-0 flex-1 leading-relaxed" id="autoSyncLiveStatusText">
+              <span class="font-bold text-slate-200">Cadangan Otomatis:</span> Masuk dengan akun Google agar setiap transaksi otomatis dicadangkan ke Google Drive &amp; dapat dipantau bersama di perangkat lain.
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onclick="handleRestoreTransactionsFromDrive()"
+              class="btn-secondary text-[11px] h-8.5 justify-center gap-1.5"
+            >
+              <i data-lucide="cloud-download" class="w-3.5 h-3.5 text-sky-400"></i>
+              <span>Pulihkan dari Drive</span>
+            </button>
+            <button
+              type="button"
+              onclick="runBackgroundDriveBackup(false)"
+              class="btn-primary text-[11px] h-8.5 justify-center gap-1.5"
+            >
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+              <span>Cadangkan Sekarang</span>
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onclick="openGoogleClientIdSetupModal()"
+            class="w-full py-2 px-3 rounded-xl text-[11px] font-semibold bg-slate-900/80 hover:bg-slate-800 text-sky-300 border border-slate-800 flex items-center justify-center gap-2 transition-colors cursor-pointer"
+          >
+            <i data-lucide="key" class="w-3.5 h-3.5 text-sky-400"></i>
+            <span>Hubungkan Google Cloud Console (OAuth Client ID)</span>
+          </button>
+        </div>
+
+        <!-- Riwayat Cadangan Transaksi Google Drive -->
+        <div class="pt-2.5 border-t border-[var(--border-subtle)] space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-primary-var flex items-center gap-1.5">
+              <i data-lucide="database-backup" class="w-3.5 h-3.5 text-emerald-400"></i>
+              <span>Riwayat Cadangan Drive</span>
+            </span>
+            <span id="driveBackupCountBadge" class="text-[10px] font-mono-num px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">0 Cadangan</span>
+          </div>
+          <div id="driveBackupHistoryList" class="space-y-1.5 max-h-36 overflow-y-auto"></div>
+        </div>
+
+      </div>
+
+      <!-- 5.1 Kartu Identitas Profil -->
+      <div class="app-card space-y-3">
+        <div class="border-b border-[var(--border-subtle)] pb-2 flex items-center justify-between">
+          <h2 class="text-xs sm:text-sm font-bold text-primary-var flex items-center gap-1.5">
+            <i data-lucide="user" class="w-4 h-4 text-sky-400"></i>
+            <span>Profil Pengelola & Grup</span>
+          </h2>
+          <span class="text-[10px] text-sky-400 font-bold bg-sky-500/10 px-2 py-0.5 rounded-full whitespace-nowrap">
+            FinMate Profile
+          </span>
+        </div>
+
+        <div class="flex items-center gap-3 p-2 rounded-xl bg-[var(--input-bg)] border border-[var(--border-color)]">
+          <div class="w-10 h-10 rounded-full bg-sky-500/15 border border-sky-400/30 flex items-center justify-center text-xl shrink-0" id="profileAvatarDisplay">
+            👤
+          </div>
+          <div class="min-w-0">
+            <div class="text-sm font-bold text-primary-var truncate" id="profileNameDisplay">Saya</div>
+            <div class="text-[11px] text-secondary-var truncate" id="profileRoleDisplay">Pengelola Kas • Kontrakan Bersama</div>
+          </div>
+        </div>
+
+        <!-- Form Edit Nama & Kelompok -->
+        <div class="space-y-2 pt-1">
+          <div class="form-group">
+            <label for="inputProfileName" class="form-label">Nama Anda</label>
+            <input type="text" id="inputProfileName" placeholder="Nama Anda..." />
+          </div>
+          <div class="form-group">
+            <label for="inputGroupName" class="form-label">Nama Kosan / Kontrakan / Rumah</label>
+            <input type="text" id="inputGroupName" placeholder="Misal: Kos Melati, Kontrakan Mandiri..." />
+          </div>
+          <button type="button" onclick="saveProfileInfo()" class="btn-primary w-full h-8 text-xs">
+            Simpan Perubahan Profil
+          </button>
+        </div>
+      </div>
+
+      <!-- 5.2 Cadangan & Pulihkan Data JSON -->
+      <div class="app-card space-y-3">
+        <div class="border-b border-[var(--border-subtle)] pb-2 flex items-center justify-between">
+          <h2 class="text-xs sm:text-sm font-bold text-primary-var flex items-center gap-1.5">
+            <i data-lucide="database" class="w-4 h-4 text-sky-400"></i>
+            <span>Cadangan & Pulihkan Data</span>
+          </h2>
+          <span class="text-[10px] text-secondary-var">JSON Backup</span>
+        </div>
+
+        <p class="text-[11px] text-secondary-var leading-snug">
+          Simpan salinan data transaksi kas bersama ke berkas JSON atau pulihkan ke perangkat lain kapan saja.
+        </p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <!-- Unduh Cadangan JSON -->
+          <button type="button" onclick="exportBackupJson()" class="btn-secondary text-xs h-9 w-full justify-center">
+            <i data-lucide="download" class="w-3.5 h-3.5 text-sky-400"></i>
+            <span>Unduh Cadangan JSON</span>
+          </button>
+
+          <!-- Pulihkan Berkas JSON -->
+          <label class="btn-secondary text-xs h-9 w-full justify-center cursor-pointer">
+            <i data-lucide="upload" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span>Pulihkan File JSON</span>
+            <input type="file" id="importJsonFileInput" accept=".json" onchange="importBackupJson(event)" class="hidden" />
+          </label>
+        </div>
+
+        <div class="pt-2 border-t border-[var(--border-subtle)]">
+          <button type="button" onclick="resetDataToDefault()" class="btn-secondary text-xs h-8 w-full justify-center text-rose-400 hover:text-rose-500 hover:bg-rose-500/10 border-rose-500/30">
+            <i data-lucide="rotate-ccw" class="w-3 h-3"></i>
+            <span>Reset Seluruh Data (Kosongkan Semua)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 5.3 Install Aplikasi FinMate (PWA) -->
+      <div class="app-card space-y-2.5">
+        <div class="border-b border-[var(--border-subtle)] pb-2 flex items-center justify-between">
+          <h2 class="text-xs sm:text-sm font-bold text-primary-var flex items-center gap-1.5">
+            <i data-lucide="smartphone" class="w-4 h-4 text-amber-400"></i>
+            <span>Install FinMate di HP / Laptop</span>
+          </h2>
+          <span class="text-[10px] text-amber-400 font-bold bg-amber-400/15 border border-amber-400/30 px-2 py-0.5 rounded-full">PWA APP</span>
+        </div>
+        <p class="text-[11px] text-secondary-var leading-snug">
+          Pasang FinMate di layar utama HP atau desktop laptop Anda untuk akses secepat aplikasi bawaan tanpa perlu membuka browser secara manual.
+        </p>
+        <button
+          type="button"
+          onclick="installPwaApp()"
+          class="w-full py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-400 active:scale-[0.99] text-slate-950 shadow-md transition-all cursor-pointer"
+        >
+          <span class="text-sm">📲</span>
+          <span>Install FinMate Sekarang</span>
+        </button>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ================= FLOATING AI ADVISOR BUTTON (BULAT KECIL RAPI) ================= -->
+  <button id="floatingAiBtn" onclick="openAiEvaluationModal()" class="floating-ai-btn" title="Buka Evaluasi AI FinMate" aria-label="Buka Evaluasi AI">
+    <span class="text-base select-none">🤖</span>
+  </button>
+
+  <!-- ================= SATU BARIS NAVIGASI TAB DI BAWAH ================= -->
+  <nav class="bottom-nav-dock" aria-label="Navigasi Menu Tab">
+    <div class="nav-dock-inner">
+      <button onclick="switchTab('dashboard')" data-tab="dashboard" class="nav-tab-item active-tab">
+        <i data-lucide="layout-dashboard"></i>
+        <span>Ringkasan</span>
+      </button>
+
+      <button onclick="switchTab('transaksi')" data-tab="transaksi" class="nav-tab-item">
+        <i data-lucide="plus-circle"></i>
+        <span>Catat</span>
+      </button>
+
+      <button onclick="switchTab('dompet')" data-tab="dompet" class="nav-tab-item">
+        <i data-lucide="wallet-cards"></i>
+        <span>Dompet</span>
+      </button>
+
+      <button onclick="switchTab('riwayat')" data-tab="riwayat" class="nav-tab-item">
+        <i data-lucide="history"></i>
+        <span>Riwayat</span>
+      </button>
+
+      <button onclick="switchTab('profil')" data-tab="profil" class="nav-tab-item">
+        <i data-lucide="user"></i>
+        <span>Profil</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ================= MODAL TAMBAH REKENING / SUMBER DANA BARU ================= -->
+  <div id="modalAddWallet" class="fixed inset-0 z-50 modal-overlay hidden items-center justify-center p-4">
+    <div class="app-card w-full max-w-sm space-y-3 my-auto relative">
+      <div class="flex items-center justify-between border-b border-[var(--border-subtle)] pb-2">
+        <h3 class="text-xs sm:text-sm font-bold text-primary-var flex items-center gap-1.5">
+          <i data-lucide="wallet" class="w-4 h-4 text-sky-400"></i>
+          <span>Tambah Rekening / Sumber Dana Baru</span>
+        </h3>
+        <button onclick="closeAddWalletModal()" class="text-secondary-var hover:text-primary-var p-1">
+          <i data-lucide="x" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+
+      <form id="addWalletForm" novalidate onsubmit="handleSaveNewWallet(event)" class="space-y-3">
+        <div class="form-group">
+          <label for="newWalletNameInput" class="form-label">Nama Rekening / Sumber Dana</label>
+          <input
+            type="text"
+            id="newWalletNameInput"
+            placeholder="Misal: Uang Bersama, Kas WiFi, Dana Cadangan..."
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="newWalletBalanceInput" class="form-label">Saldo Awal (Rp)</label>
+          <div class="input-currency-group">
+            <span class="currency-prefix">Rp</span>
+            <input
+              type="text"
+              inputmode="numeric"
+              id="newWalletBalanceInput"
+              placeholder="0"
+              class="currency-input"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-[var(--border-subtle)]">
+          <button type="button" onclick="closeAddWalletModal()" class="btn-secondary text-xs h-8">
+            Batal
+          </button>
+          <button type="submit" class="btn-primary text-xs h-8">
+            Simpan Rekening
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL EDIT REKENING / SALDO ================= -->
+  <div id="modalEditWallet" class="fixed inset-0 z-50 modal-overlay hidden items-center justify-center p-4">
+    <div class="app-card w-full max-w-sm space-y-3 my-auto relative">
+      <div class="flex items-center justify-between border-b border-[var(--border-subtle)] pb-2">
+        <h3 class="text-xs sm:text-sm font-bold text-primary-var flex items-center gap-1.5">
+          <i data-lucide="edit" class="w-4 h-4 text-sky-400"></i>
+          <span>Edit Rekening / Saldo</span>
+        </h3>
+        <button onclick="closeEditWalletModal()" class="text-secondary-var hover:text-primary-var p-1">
+          <i data-lucide="x" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+
+      <form id="editWalletForm" novalidate onsubmit="handleSaveWalletEdit(event)" class="space-y-2.5">
+        <input type="hidden" id="editWalletId" />
+
+        <div class="form-group">
+          <label for="editWalletNameInput" class="form-label">Nama Rekening</label>
+          <input
+            type="text"
+            id="editWalletNameInput"
+            placeholder="Nama rekening..."
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="editWalletBalanceInput" class="form-label">Saldo Awal / Nominal (Rp)</label>
+          <div class="input-currency-group">
+            <span class="currency-prefix">Rp</span>
+            <input
+              type="text"
+              inputmode="numeric"
+              id="editWalletBalanceInput"
+              placeholder="0"
+              class="currency-input"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-[var(--border-subtle)]">
+          <button type="button" onclick="closeEditWalletModal()" class="btn-secondary text-xs h-8">
+            Batal
+          </button>
+          <button type="submit" class="btn-primary text-xs h-8">
+            Simpan Perubahan
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL EDIT TRANSAKSI (CRUD TRANSAKSI) ================= -->
+  <div id="modalEditTx" class="fixed inset-0 z-50 modal-overlay hidden items-center justify-center p-4">
+    <div class="app-card w-full max-w-sm space-y-3 my-auto relative">
+      <div class="flex items-center justify-between border-b border-[var(--border-subtle)] pb-2">
+        <h3 class="text-xs sm:text-sm font-bold text-primary-var flex items-center gap-1.5">
+          <i data-lucide="edit-3" class="w-4 h-4 text-sky-400"></i>
+          <span>Edit Transaksi</span>
+        </h3>
+        <button onclick="closeEditTxModal()" class="text-secondary-var hover:text-primary-var p-1">
+          <i data-lucide="x" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+
+      <form id="editTxForm" novalidate onsubmit="handleSaveTxEdit(event)" class="space-y-2.5">
+        <input type="hidden" id="editTxId" />
+
+        <!-- Tipe Transaksi -->
+        <div class="form-group">
+          <label class="form-label">Tipe Transaksi</label>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="type-radio-pill has-[:checked]:border-rose-400 has-[:checked]:bg-rose-500/15 has-[:checked]:text-rose-400">
+              <input type="radio" name="editTxType" value="expense" id="editTxTypeExpense" class="hidden" onchange="updateEditModalCategories()" />
+              <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+              <span class="whitespace-nowrap font-bold">Pengeluaran</span>
+            </label>
+            <label class="type-radio-pill has-[:checked]:border-emerald-400 has-[:checked]:bg-emerald-500/15 has-[:checked]:text-emerald-400">
+              <input type="radio" name="editTxType" value="income" id="editTxTypeIncome" class="hidden" onchange="updateEditModalCategories()" />
+              <i data-lucide="arrow-down-left" class="w-3.5 h-3.5"></i>
+              <span class="whitespace-nowrap font-bold">Pemasukan</span>
+            </label>
+          </div>
+        </div>
+
+        <input type="hidden" id="editTxTitle" />
+
+        <!-- Nominal & Tanggal -->
+        <div class="grid grid-cols-2 gap-2">
+          <div class="form-group">
+            <label for="editTxAmount" class="form-label">Nominal (Rp)</label>
+            <div class="input-currency-group">
+              <span class="currency-prefix">Rp</span>
+              <input
+                type="text"
+                inputmode="numeric"
+                id="editTxAmount"
+                placeholder="0"
+                class="currency-input"
+                autocomplete="off"
+              />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="editTxDate" class="form-label">Tanggal</label>
+            <input type="date" id="editTxDate" />
+          </div>
+        </div>
+
+        <!-- Kategori -->
+        <div class="form-group">
+          <label for="editTxCategory" class="form-label">Kategori</label>
+          <select id="editTxCategory"></select>
+        </div>
+
+        <!-- Rekening Kas -->
+        <div class="form-group">
+          <label for="editTxWallet" class="form-label">Rekening Kas</label>
+          <select id="editTxWallet"></select>
+        </div>
+
+        <!-- Coretan Rincian Pengeluaran / Bukti Transaksi -->
+        <div class="form-group">
+          <div class="flex items-center justify-between mb-0.5">
+            <label for="editTxNotes" class="form-label flex items-center gap-1.5 cursor-pointer">
+              <i data-lucide="file-text" class="w-3.5 h-3.5 text-sky-400"></i>
+              <span class="font-bold text-primary-var">Coretan Rincian Uang Keluar Untuk Apa?</span>
+            </label>
+            <button
+              type="button"
+              onclick="insertBulletPointToNotes('editTxNotes')"
+              class="text-[10px] font-bold text-sky-400 bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/30 px-2 py-0.5 rounded-md transition flex items-center gap-1 active:scale-95"
+              title="Tambah Simbol Titik (•)"
+            >
+              <span>+ Titik (•)</span>
+            </button>
+          </div>
+          <textarea
+            id="editTxNotes"
+            rows="3"
+            placeholder="• Beli beras 5kg: Rp 75.000&#10;• Minyak goreng 2L: Rp 34.000..."
+            class="w-full text-xs font-mono p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)] focus:border-sky-400 leading-relaxed resize-y"
+            onfocus="handleBulletAutoInsertOnFocus(this)"
+            onclick="handleBulletAutoInsertOnFocus(this)"
+            onkeydown="handleBulletKeyDown(event, this)"
+          ></textarea>
+        </div>
+
+        <!-- Foto Bukti Nota / Kwitansi -->
+        <div class="form-group">
+          <label class="form-label flex items-center justify-between">
+            <span class="flex items-center gap-1.5">
+              <i data-lucide="camera" class="w-3.5 h-3.5 text-sky-400"></i>
+              <span>Foto Bukti Nota / Kwitansi</span>
+            </span>
+            <span class="text-[10px] text-secondary-var">Gambar</span>
+          </label>
+
+          <div class="receipt-upload-box">
+            <input
+              type="file"
+              id="editTxReceiptInput"
+              accept="image/*"
+              class="hidden"
+              onchange="handleReceiptFileSelect(event, 'edit')"
+            />
+
+            <!-- Area Belum Pilih Gambar -->
+            <div
+              id="editTxReceiptEmptyState"
+              onclick="document.getElementById('editTxReceiptInput').click()"
+              class="cursor-pointer p-2.5 border-2 border-dashed border-[var(--border-color)] hover:border-sky-400 rounded-xl bg-[var(--input-bg)] text-center transition space-y-1"
+            >
+              <i data-lucide="image-plus" class="w-5 h-5 mx-auto text-sky-400"></i>
+              <div class="text-[11px] font-bold text-primary-var">Ganti / Unggah Foto Nota</div>
+            </div>
+
+            <!-- Pratinjau Gambar -->
+            <div id="editTxReceiptPreviewContainer" class="hidden relative rounded-xl overflow-hidden border border-sky-400/40 bg-[var(--input-bg)] p-2">
+              <div class="relative max-h-36 overflow-hidden rounded-lg bg-black/30 flex items-center justify-center">
+                <img id="editTxReceiptPreviewImg" src="" alt="Pratinjau Nota" class="max-h-36 object-contain rounded" />
+              </div>
+              <div class="mt-2 flex items-center justify-between text-[11px] px-1">
+                <span id="editTxReceiptFileName" class="text-sky-400 font-bold truncate max-w-[180px]">nota.jpg</span>
+                <button
+                  type="button"
+                  onclick="removeReceiptPhoto('edit')"
+                  class="text-rose-400 hover:text-rose-300 font-bold flex items-center gap-1"
+                >
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                  <span>Hapus</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-[var(--border-subtle)]">
+          <button type="button" onclick="closeEditTxModal()" class="btn-secondary text-xs h-8">
+            Batal
+          </button>
+          <button type="submit" class="btn-primary text-xs h-8">
+            Perbarui Transaksi
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL LIHAT BUKTI NOTA & RINCIAN TRANSAKSI ================= -->
+  <div id="modalReceiptDetail" class="fixed inset-0 z-50 modal-overlay hidden items-center justify-center p-3 sm:p-4">
+    <div class="app-card w-full max-w-md space-y-3.5 my-auto max-h-[92vh] overflow-y-auto relative">
+      <!-- Header Modal -->
+      <div class="flex items-center justify-between border-b border-[var(--border-subtle)] pb-2.5">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-sky-500/15 border border-sky-400/25 flex items-center justify-center text-sky-400 shrink-0">
+            <i data-lucide="receipt" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="text-xs sm:text-sm font-bold text-primary-var flex items-center gap-1.5">
+              <span>Bukti Transaksi & Nota</span>
+              <span class="text-[9.5px] font-bold px-1.5 py-0.2 rounded bg-sky-500/20 text-sky-400">Kas Bersama</span>
+            </h3>
+            <p class="text-[10px] text-secondary-var" id="receiptDetailSubtitle">Rincian lengkap pengeluaran kas</p>
+          </div>
+        </div>
+        <button onclick="closeReceiptDetailModal()" class="text-secondary-var hover:text-primary-var p-1">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Ringkasan Transaksi Utama -->
+      <div class="p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--border-color)] space-y-2">
+        <div class="flex items-start justify-between gap-2">
+          <div>
+            <h4 class="text-sm font-bold text-primary-var" id="receiptDetailTitle">Nama Transaksi</h4>
+            <div class="text-[11px] text-secondary-var flex items-center gap-1.5 mt-0.5">
+              <span id="receiptDetailCategory" class="text-sky-400 font-semibold">Kategori</span>
+              <span>•</span>
+              <span id="receiptDetailWallet" class="font-semibold text-primary-var">Kas Bersama</span>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="text-sm sm:text-base font-extrabold font-mono-num" id="receiptDetailAmount">Rp 0</div>
+            <div class="text-[10.5px] text-secondary-var" id="receiptDetailDate">14 Oktober 2026</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kotak Coretan Rincian Pengeluaran / Nota -->
+      <div class="space-y-1.5">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold text-primary-var flex items-center gap-1.5">
+            <i data-lucide="file-text" class="w-3.5 h-3.5 text-sky-400"></i>
+            <span>Coretan Rincian / Uang Keluar Untuk Apa</span>
+          </span>
+          <span class="text-[10px] text-secondary-var">Catatan Bukti</span>
+        </div>
+        <div id="receiptDetailNotes" class="receipt-note-box">
+          <!-- Rendered via JavaScript -->
+        </div>
+      </div>
+
+      <!-- Kotak Foto Bukti Nota / Kwitansi -->
+      <div class="space-y-1.5" id="receiptDetailPhotoSection">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold text-primary-var flex items-center gap-1.5">
+            <i data-lucide="image" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span>Foto Bukti Nota / Kwitansi / Struk</span>
+          </span>
+          <span class="text-[10px] text-sky-400 font-semibold cursor-pointer" onclick="openReceiptFullScreen()">Klik untuk perbesar</span>
+        </div>
+
+        <div class="p-2 rounded-xl bg-black/25 border border-[var(--border-color)] flex items-center justify-center min-h-[140px]">
+          <img id="receiptDetailImg" src="" alt="Foto Bukti Nota" class="receipt-lightbox-img" onclick="openReceiptFullScreen()" />
+          <div id="receiptDetailNoImg" class="text-center py-6 text-secondary-var text-xs hidden">
+            <i data-lucide="file-question" class="w-8 h-8 mx-auto text-muted-var stroke-[1.5] mb-1"></i>
+            <p>Tidak ada lampiran foto nota pada transaksi ini.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Modal -->
+      <div class="flex items-center justify-between pt-2 border-t border-[var(--border-subtle)]">
+        <button
+          type="button"
+          id="receiptDetailEditBtn"
+          onclick="editFromReceiptDetail()"
+          class="btn-secondary text-xs h-8 px-3"
+        >
+          <i data-lucide="edit-3" class="w-3 h-3 text-sky-400"></i>
+          <span>Edit Bukti / Transaksi</span>
+        </button>
+        <button type="button" onclick="closeReceiptDetailModal()" class="btn-primary text-xs h-8 px-4">
+          Tutup
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL ATUR ID KAS BERSAMA ================= -->
+  <div id="modalSharedRoom" class="fixed inset-0 z-50 modal-overlay hidden items-center justify-center p-4">
+    <div class="app-card w-full max-w-sm space-y-3 my-auto relative">
+      <div class="flex items-center justify-between border-b border-[var(--border-subtle)] pb-2">
+        <h3 class="text-xs sm:text-sm font-bold text-primary-var flex items-center gap-1.5">
+          <i data-lucide="key" class="w-4 h-4 text-sky-400"></i>
+          <span>ID Ruang Kas Bersama</span>
+        </h3>
+        <button onclick="closeSharedRoomModal()" class="text-secondary-var hover:text-primary-var p-1">
+          <i data-lucide="x" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+
+      <form id="sharedRoomForm" novalidate onsubmit="handleSaveSharedRoom(event)" class="space-y-3">
+        <p class="text-[11px] text-secondary-var leading-relaxed">
+          Gunakan ID ruang kas yang sama di setiap HP teman atau pengelola kontrakan agar semuanya mengakses dan memantau pembukuan yang sama.
+        </p>
+
+        <div class="form-group">
+          <label for="inputSharedRoomId" class="form-label">ID Kas Bersama</label>
+          <input
+            type="text"
+            id="inputSharedRoomId"
+            placeholder="Misal: kontrakan_merpati_2026"
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-[var(--border-subtle)]">
+          <button type="button" onclick="closeSharedRoomModal()" class="btn-secondary text-xs h-8">
+            Batal
+          </button>
+          <button type="submit" class="btn-primary text-xs h-8">
+            Simpan ID Kas
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL LOGIN DENGAN GOOGLE (MULTI-STEP OTENTIK SEPERTI TRACKER KEUANGAN) ================= -->
+  <div id="modalGoogleAuth" class="fixed inset-0 z-50 modal-overlay hidden items-center justify-center p-3 sm:p-4" onclick="handleGoogleModalOverlayClick(event)">
+    <div class="w-full max-w-[420px] p-0 overflow-hidden my-auto relative border border-[#dadce0] shadow-2xl bg-white text-[#202124] rounded-[24px] sm:rounded-[28px]" onclick="event.stopPropagation()">
+      <div id="googleAuthModalBody">
+        <!-- Rendered via JavaScript: Step 1 (Pilih Akun) -> Step 2 (Persetujuan Drive) -> Step 3 (Konfirmasi Nama) -> Step 4 (Sambutan) -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL EVALUASI AI AKHIR BULAN ================= -->
+  <div id="modalAiEvaluation" class="fixed inset-0 z-50 modal-overlay hidden items-center justify-center p-3 sm:p-4">
+    <div class="app-card w-full max-w-lg space-y-3.5 my-auto max-h-[90vh] overflow-y-auto relative">
+      <!-- Header Modal -->
+      <div class="flex items-center justify-between border-b border-[var(--border-subtle)] pb-2.5">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-sky-500/15 border border-sky-400/25 flex items-center justify-center text-sky-400">
+            <i data-lucide="bot" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="text-xs sm:text-sm font-bold text-primary-var flex items-center gap-1.5">
+              <span>FinMate AI — Evaluasi Kas Bersama</span>
+              <span class="ai-sparkle-badge">SMART</span>
+            </h3>
+            <p class="text-[10.5px] text-secondary-var" id="aiModalSubtitle">Periode Bulan Ini</p>
+          </div>
+        </div>
+        <button onclick="closeAiEvaluationModal()" class="text-secondary-var hover:text-primary-var p-1">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- 1. Skor Kesehatan Kas -->
+      <div class="score-health-card space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold text-secondary-var tracking-wider uppercase">SKOR KESEHATAN KAS</span>
+          <span id="aiHealthStatusBadge" class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-400/30">
+            🟢 Sangat Sehat (Surplus)
+          </span>
+        </div>
+
+        <div class="flex items-baseline gap-2">
+          <span class="text-3xl sm:text-4xl font-extrabold font-mono-num text-sky-400" id="aiHealthScore">85</span>
+          <span class="text-xs text-secondary-var font-bold">/ 100</span>
+        </div>
+
+        <!-- 3 Mini Metrik -->
+        <div class="grid grid-cols-3 gap-2 pt-2 border-t border-[var(--border-subtle)] text-center">
+          <div>
+            <div class="text-[10px] text-secondary-var">Total Pemasukan</div>
+            <div class="text-xs font-bold font-mono-num text-emerald-400" id="aiMetricIncome">Rp 0</div>
+          </div>
+          <div>
+            <div class="text-[10px] text-secondary-var">Total Pengeluaran</div>
+            <div class="text-xs font-bold font-mono-num text-rose-400" id="aiMetricExpense">Rp 0</div>
+          </div>
+          <div>
+            <div class="text-[10px] text-secondary-var">Sisa Kas Periode Ini</div>
+            <div class="text-xs font-bold font-mono-num text-sky-400" id="aiMetricNet">Rp 0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Analisis Beban Pengeluaran Dominan -->
+      <div class="space-y-2">
+        <h4 class="text-xs font-bold text-primary-var flex items-center gap-1.5">
+          <i data-lucide="pie-chart" class="w-3.5 h-3.5 text-sky-400"></i>
+          <span>Analisis Pos Pengeluaran Dominan</span>
+        </h4>
+        <div id="aiCategoryBreakdownList" class="space-y-2">
+          <!-- Rendered via JavaScript -->
+        </div>
+      </div>
+
+      <!-- 3. Rekomendasi Pintar AI -->
+      <div class="space-y-2">
+        <h4 class="text-xs font-bold text-primary-var flex items-center gap-1.5">
+          <i data-lucide="lightbulb" class="w-3.5 h-3.5 text-amber-400"></i>
+          <span>Rekomendasi Strategis AI Bulan Depan</span>
+        </h4>
+        <div id="aiRecommendationsList" class="space-y-1.5 text-xs">
+          <!-- Rendered via JavaScript -->
+        </div>
+      </div>
+
+      <!-- 4. Format Laporan WhatsApp -->
+      <div class="space-y-2 pt-2 border-t border-[var(--border-subtle)]">
+        <div class="flex items-center justify-between">
+          <h4 class="text-xs font-bold text-primary-var flex items-center gap-1.5">
+            <i data-lucide="share-2" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span>Format Laporan Grup WhatsApp</span>
+          </h4>
+          <button
+            onclick="copyAiReportToClipboard()"
+            class="btn-secondary text-[11px] h-7 px-2.5 text-sky-400 hover:text-sky-300 flex items-center gap-1"
+          >
+            <i data-lucide="copy" class="w-3 h-3"></i>
+            <span>Salin Format WA</span>
+          </button>
+        </div>
+        <textarea
+          id="aiWhatsAppReportText"
+          readonly
+          rows="4"
+          class="w-full text-[11px] font-mono p-2.5 rounded-lg bg-[var(--input-bg)] border border-[var(--border-color)] text-secondary-var focus:outline-none resize-none leading-relaxed"
+        ></textarea>
+      </div>
+
+      <!-- Footer Modal -->
+      <div class="flex items-center justify-end pt-2 border-t border-[var(--border-subtle)]">
+        <button type="button" onclick="closeAiEvaluationModal()" class="btn-primary text-xs h-8 px-4">
+          Tutup Evaluasi
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,702 @@
+/**
+ * FinMate — Modern Pastel Blue Interactive Stylesheet
+ * Rapi, Halus, Tidak Acak-Acakan, & Dilengkapi Animasi Interaktif Penuh
+ */
+
+:root {
+  color-scheme: dark;
+  --bg-body: #0B132B;
+  --bg-header: rgba(11, 19, 43, 0.94);
+  --bg-nav: rgba(11, 19, 43, 0.95);
+  --bg-card: #131E3A;
+  --bg-card-hover: #19274A;
+  --border-color: rgba(147, 197, 253, 0.16);
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --text-primary: #F0F6FC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --input-bg: #152241;
+  --input-border: rgba(147, 197, 253, 0.2);
+  --pastel-blue-primary: #38BDF8;
+  --pastel-blue-hover: #0EA5E9;
+  --pastel-blue-light: #7DD3FC;
+  --pastel-blue-subtle: rgba(56, 189, 248, 0.14);
+  --pastel-blue-border: rgba(56, 189, 248, 0.35);
+  --color-income: #34D399;
+  --color-expense: #FB7185;
+  --color-warning: #FBBF24;
+  --card-shadow: 0 4px 18px -2px rgba(0, 0, 0, 0.45);
+  --card-shadow-hover: 0 12px 30px -4px rgba(56, 189, 248, 0.22);
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --bg-body: #F0F5FA;
+  --bg-header: rgba(240, 245, 250, 0.96);
+  --bg-nav: rgba(255, 255, 255, 0.96);
+  --bg-card: #FFFFFF;
+  --bg-card-hover: #F8FAFD;
+  --border-color: #D3E2F4;
+  --border-subtle: #E2ECF8;
+  --text-primary: #0F1E36;
+  --text-secondary: #4A5D78;
+  --text-muted: #7E92AB;
+  --input-bg: #F8FAFD;
+  --input-border: #CBDDF2;
+  --pastel-blue-primary: #0284C7;
+  --pastel-blue-hover: #0369A1;
+  --pastel-blue-light: #38BDF8;
+  --pastel-blue-subtle: #E0F2FE;
+  --pastel-blue-border: #BAE6FD;
+  --color-income: #059669;
+  --color-expense: #E11D48;
+  --color-warning: #D97706;
+  --card-shadow: 0 4px 16px -2px rgba(56, 189, 248, 0.08);
+  --card-shadow-hover: 0 12px 28px -3px rgba(2, 132, 199, 0.16);
+}
+
+/* Base Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background-color: var(--bg-body);
+  color: var(--text-primary);
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  min-height: 100vh;
+  transition: background-color 0.25s ease, color 0.25s ease;
+  line-height: 1.45;
+  font-size: 0.8125rem; /* 13px dasar */
+}
+
+/* ========================================================
+   ANIMASI INTERAKTIF HALUS (TIDAK MONOTON & KAKU)
+   ======================================================== */
+@keyframes fadeInSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes popIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(56, 189, 248, 0);
+  }
+}
+
+/* Animasi untuk Tab Section yang sedang aktif */
+.tab-section:not(.hidden) {
+  animation: fadeInSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Animasi List Item */
+.interactive-item {
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.interactive-item:hover {
+  background-color: var(--bg-card-hover);
+  transform: translateX(3px);
+}
+
+/* Typography Hierarchy */
+h1 {
+  font-size: 1.125rem; /* 18px */
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+h2 {
+  font-size: 0.9375rem; /* 15px */
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+h3 {
+  font-size: 0.875rem; /* 14px */
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+p, span, label, small {
+  color: inherit;
+}
+
+.text-primary-var {
+  color: var(--text-primary) !important;
+}
+
+.text-secondary-var {
+  color: var(--text-secondary) !important;
+}
+
+.text-muted-var {
+  color: var(--text-muted) !important;
+}
+
+.font-mono-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ========================================================
+   STANDARISASI FORM & INPUT (RAPI, SERAGAM, NO-WRAP)
+   ======================================================== */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-label {
+  font-size: 0.75rem; /* 12px */
+  font-weight: 600;
+  color: var(--text-secondary);
+  line-height: 1.2;
+}
+
+.form-hint {
+  font-size: 0.6875rem; /* 11px */
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="date"],
+select,
+textarea {
+  background-color: var(--input-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--input-border);
+  border-radius: 0.625rem;
+  height: 2.375rem; /* 38px seragam */
+  padding: 0 0.75rem;
+  font-size: 0.8125rem; /* 13px */
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+textarea {
+  height: auto;
+  padding: 0.6rem 0.75rem;
+}
+
+input[type="date"] {
+  height: 2.375rem;
+  line-height: 2.375rem;
+  font-size: 0.8125rem;
+}
+
+input::placeholder {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 400;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--pastel-blue-primary);
+  box-shadow: 0 0 0 2.5px rgba(56, 189, 248, 0.18);
+  background-color: var(--bg-card);
+}
+
+/* Currency Input Group dengan Prefix Rp Bebas Tabrakan */
+.input-currency-group {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--input-border);
+  border-radius: 0.625rem;
+  background-color: var(--input-bg);
+  height: 2.375rem;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.input-currency-group:focus-within {
+  border-color: var(--pastel-blue-primary);
+  box-shadow: 0 0 0 2.5px rgba(56, 189, 248, 0.18);
+  background-color: var(--bg-card);
+}
+
+.currency-prefix {
+  padding: 0 0.85rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--pastel-blue-primary);
+  background-color: var(--pastel-blue-subtle);
+  border-right: 1px solid var(--border-color);
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.currency-input {
+  flex: 1;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  height: 100% !important;
+  padding: 0 0.75rem !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 0.875rem !important;
+  font-weight: 600;
+  color: var(--text-primary) !important;
+  outline: none !important;
+  min-width: 0;
+}
+
+/* Radio Button Type Pill (Pengeluaran vs Pemasukan) */
+.type-radio-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  height: 2.375rem;
+  padding: 0 0.75rem;
+  border-radius: 0.625rem;
+  border: 1px solid var(--border-color);
+  font-size: 0.75rem; /* 12px */
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--text-secondary);
+  background-color: var(--input-bg);
+  white-space: nowrap;
+}
+
+.type-radio-pill:hover {
+  border-color: var(--pastel-blue-primary);
+  color: var(--text-primary);
+}
+
+/* ========================================================
+   STANDARISASI TOMBOL (TIDAK TERPOTONG / NO-WRAP)
+   ======================================================== */
+.btn-primary {
+  background-color: var(--pastel-blue-primary);
+  color: #FFFFFF !important;
+  font-weight: 600;
+  font-size: 0.8125rem; /* 13px */
+  height: 2.375rem; /* 38px seragam */
+  padding: 0 1rem;
+  border-radius: 0.625rem;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  white-space: nowrap; /* Mencegah tombol teks melipat vertikal */
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px -2px rgba(56, 189, 248, 0.35);
+}
+
+.btn-primary:hover {
+  background-color: var(--pastel-blue-hover);
+  transform: translateY(-1.5px);
+  box-shadow: 0 4px 14px -2px rgba(56, 189, 248, 0.5);
+}
+
+.btn-primary:active {
+  transform: scale(0.97);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  font-size: 0.75rem; /* 12px */
+  font-weight: 600;
+  height: 2.125rem; /* 34px */
+  padding: 0 0.85rem;
+  border-radius: 0.55rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  white-space: nowrap; /* Mencegah tombol teks melipat */
+  transition: all 0.18s ease;
+}
+
+.btn-secondary:hover {
+  background-color: var(--bg-card-hover);
+  border-color: var(--pastel-blue-primary);
+  color: var(--pastel-blue-primary);
+  transform: translateY(-1px);
+}
+
+.btn-secondary:active {
+  transform: scale(0.97);
+}
+
+/* App Card Surface dengan Hover Interaktif */
+.app-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 0.95rem;
+  padding: 1rem 1.15rem;
+  box-shadow: var(--card-shadow);
+  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.app-card:hover {
+  border-color: var(--pastel-blue-border);
+  box-shadow: var(--card-shadow-hover);
+  transform: translateY(-2px);
+}
+
+/* ========================================================
+   BOTTOM NAVIGATION DOCK (SATU BARIS, SEIMBANG)
+   ======================================================== */
+.bottom-nav-dock {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background-color: var(--bg-nav);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid var(--border-color);
+  box-shadow: 0 -4px 20px -2px rgba(0, 0, 0, 0.35);
+}
+
+.nav-dock-inner {
+  max-width: 680px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 6px 10px;
+  gap: 4px;
+}
+
+.nav-tab-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 5px 4px;
+  border-radius: 0.65rem;
+  color: var(--text-secondary);
+  font-size: 0.6875rem; /* 11px */
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  line-height: 1.1;
+  gap: 3px;
+  white-space: nowrap;
+}
+
+.nav-tab-item svg {
+  width: 1.125rem; /* 18px */
+  height: 1.125rem;
+  transition: transform 0.18s ease;
+}
+
+.nav-tab-item:hover {
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.nav-tab-item.active-tab {
+  color: var(--pastel-blue-primary);
+  font-weight: 700;
+  background-color: var(--pastel-blue-subtle);
+}
+
+.nav-tab-item.active-tab svg {
+  transform: translateY(-2px) scale(1.1);
+}
+
+/* Badges */
+.badge-fund-shared {
+  background-color: var(--pastel-blue-subtle);
+  color: var(--pastel-blue-primary);
+  border: 1px solid var(--pastel-blue-border);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+
+.badge-fund-personal {
+  background-color: rgba(129, 140, 248, 0.14);
+  color: #818CF8;
+  border: 1px solid rgba(129, 140, 248, 0.3);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+
+/* Mode Selection Cards di Tab Profil */
+.mode-card-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-color);
+  background-color: var(--input-bg);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mode-card-item:hover {
+  border-color: var(--pastel-blue-primary);
+  background-color: var(--bg-card-hover);
+  transform: translateX(3px);
+}
+
+.mode-card-item.active-mode {
+  border-color: var(--pastel-blue-primary);
+  background-color: var(--pastel-blue-subtle);
+  animation: pulseGlow 3s infinite;
+}
+
+/* Modal Overlay & Card Pop In */
+.modal-overlay {
+  background-color: rgba(11, 19, 43, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.modal-overlay:not(.hidden) > div {
+  animation: popIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+[data-theme="light"] .modal-overlay {
+  background-color: rgba(15, 30, 54, 0.5);
+}
+
+/* Custom Toast Notification */
+.toast-banner {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 999;
+  background-color: var(--bg-card);
+  border: 1px solid var(--pastel-blue-border);
+  box-shadow: 0 10px 30px -4px rgba(0, 0, 0, 0.5), 0 0 15px rgba(56, 189, 248, 0.2);
+  border-radius: 9999px;
+  padding: 8px 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.785rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  animation: popIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  pointer-events: none;
+}
+
+/* ========================================================
+   AI FINANCIAL ADVISOR STYLES (EVALUASI AKHIR BULAN)
+   ======================================================== */
+.ai-advisor-banner {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, rgba(99, 102, 241, 0.12) 100%);
+  border: 1px solid var(--pastel-blue-border);
+  border-radius: 0.875rem;
+  padding: 12px 14px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.25s ease;
+}
+
+.ai-advisor-banner:hover {
+  border-color: var(--pastel-blue-primary);
+  box-shadow: 0 4px 20px -2px rgba(56, 189, 248, 0.2);
+}
+
+.ai-sparkle-badge {
+  background: linear-gradient(135deg, #38BDF8 0%, #818CF8 100%);
+  color: #FFFFFF;
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.score-health-card {
+  background: radial-gradient(circle at top right, rgba(56, 189, 248, 0.15), transparent 60%), var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  padding: 14px;
+}
+
+.category-bar-track {
+  width: 100%;
+  height: 6px;
+  background-color: var(--border-subtle);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.category-bar-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Floating AI Advisor Button (Bulat Kecil Rapi di Pojok Kanan) */
+.floating-ai-btn {
+  position: fixed;
+  bottom: 70px;
+  right: 16px;
+  z-index: 45;
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #0284C7 0%, #4F46E5 100%);
+  color: #FFFFFF;
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 18px -2px rgba(2, 132, 199, 0.5), 0 0 10px rgba(56, 189, 248, 0.25);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: popIn 0.3s ease;
+}
+
+.floating-ai-btn:hover {
+  transform: translateY(-2px) scale(1.08);
+  box-shadow: 0 10px 24px -2px rgba(79, 70, 229, 0.6);
+}
+
+.floating-ai-btn:active {
+  transform: scale(0.92);
+}
+
+/* Month Period Switcher */
+.month-navigator {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 9999px;
+  padding: 2px 4px;
+  gap: 4px;
+}
+
+.month-nav-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.month-nav-btn:hover {
+  background-color: var(--pastel-blue-subtle);
+  color: var(--pastel-blue-primary);
+}
+
+/* ========================================================
+   BUKTI TRANSAKSI, NOTA, & CORETAN RINCIAN
+   ======================================================== */
+.receipt-upload-box {
+  border-radius: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.receipt-note-box {
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 0.65rem;
+  padding: 0.75rem 0.85rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  color: var(--text-primary);
+}
+
+.badge-receipt {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 0.375rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  background-color: rgba(56, 189, 248, 0.12);
+  color: var(--pastel-blue-primary);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.badge-receipt:hover {
+  background-color: rgba(56, 189, 248, 0.22);
+  transform: translateY(-0.5px);
+}
+
+/* Modal Bukti Transaksi Lightbox */
+.receipt-lightbox-img {
+  max-height: 60vh;
+  width: auto;
+  margin: 0 auto;
+  border-radius: 0.5rem;
+  object-fit: contain;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  cursor: zoom-in;
+  transition: transform 0.2s ease;
+}
+
+.receipt-lightbox-img:hover {
+  transform: scale(1.02);
+}
+

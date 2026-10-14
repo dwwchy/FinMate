@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="finmateBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="50%" stop-color="#0284C7"/>
+      <stop offset="100%" stop-color="#4F46E5"/>
+    </linearGradient>
+
+    <!-- Top Highlight -->
+    <linearGradient id="finmateHighlight" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.32"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.2"/>
+    </linearGradient>
+
+    <!-- Ring Left (Fin) -->
+    <linearGradient id="ringLeftGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#BAE6FD"/>
+    </linearGradient>
+
+    <!-- Ring Right (Mate) -->
+    <linearGradient id="ringRightGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7DD3FC"/>
+      <stop offset="100%" stop-color="#E0E7FF"/>
+    </linearGradient>
+
+    <!-- Emerald Arrow -->
+    <linearGradient id="arrowGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#34D399"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Squircle Base -->
+  <rect x="24" y="24" width="464" height="464" rx="124" fill="url(#finmateBg)"/>
+  <rect x="24" y="24" width="464" height="464" rx="124" fill="url(#finmateHighlight)"/>
+
+  <!-- Subtle Inner Border -->
+  <rect x="25" y="25" width="462" height="462" rx="123" fill="none" stroke="#FFFFFF" stroke-opacity="0.25" stroke-width="2"/>
+
+  <!-- Geometric Decorative Track -->
+  <circle cx="256" cy="256" r="176" fill="none" stroke="#FFFFFF" stroke-opacity="0.12" stroke-width="2" stroke-dasharray="10 10"/>
+
+  <!-- Interlocking Shared Financial Rings -->
+  <!-- Left Coin Ring -->
+  <circle cx="204" cy="256" r="96" fill="none" stroke="url(#ringLeftGrad)" stroke-width="28"/>
+  <!-- Right Coin Ring -->
+  <circle cx="308" cy="256" r="96" fill="none" stroke="url(#ringRightGrad)" stroke-width="28"/>
+
+  <!-- Center Joint / Link Bar (Connecting Both Partners) -->
+  <rect x="228" y="240" width="56" height="32" rx="16" fill="#FFFFFF"/>
+  <circle cx="256" cy="256" r="7" fill="#0284C7"/>
+
+  <!-- Growth / Financial Surplus Arrow -->
+  <g transform="translate(0, -6)">
+    <path d="M334 162 L384 162 L384 212" fill="none" stroke="url(#arrowGrad)" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M384 162 L276 270" fill="none" stroke="url(#arrowGrad)" stroke-width="20" stroke-linecap="round"/>
+  </g>
+
+  <!-- Star Sparkle on Top Left Ring -->
+  <path d="M148 162 L154 180 L172 186 L154 192 L148 210 L142 192 L124 186 L142 180 Z" fill="#FFFFFF" opacity="0.95"/>
+</svg>
