@@ -465,7 +465,7 @@ function renderDashboardRecent(monthTxs) {
     container.innerHTML = `
       <div class="py-6 text-center text-secondary-var text-xs space-y-1">
         <p>Belum ada transaksi di periode ${formatMonthYearIndo(state.settings.activeMonth)}.</p>
-        <p class="text-[11px] text-sky-400">Tekan "+ Catat Baru" untuk mencatat keuangan kas.</p>
+        <p class="text-[11px] text-sky-400">Tekan "Catatan Baru" untuk mencatat keuangan kas.</p>
       </div>
     `;
     return;

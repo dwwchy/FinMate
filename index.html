@@ -169,26 +169,19 @@
 
       <!-- 1.2 Aktivitas Terkini & Tombol Pintas -->
       <section class="app-card space-y-3" aria-label="Aktivitas Terkini">
-        <div class="flex items-center justify-between border-b border-[var(--border-subtle)] pb-2">
-          <h2 class="text-xs sm:text-sm font-bold text-primary-var flex items-center gap-1.5">
-            <i data-lucide="clock" class="w-4 h-4 text-sky-400"></i>
-            <span id="recentTxHeader">Transaksi Periode Ini</span>
+        <div class="flex items-center justify-between border-b border-[var(--border-subtle)] pb-2 gap-2">
+          <h2 class="text-xs sm:text-sm font-bold text-primary-var flex items-center gap-1.5 min-w-0">
+            <i data-lucide="clock" class="w-4 h-4 text-sky-400 shrink-0"></i>
+            <span id="recentTxHeader" class="whitespace-nowrap font-bold">Transaksi Periode Ini</span>
           </h2>
-          <div class="flex items-center gap-2 shrink-0">
-            <button
-              onclick="switchTab('transaksi')"
-              class="btn-primary text-xs py-1.5 px-3 h-8 whitespace-nowrap flex items-center gap-1.5"
-            >
-              <i data-lucide="plus" class="w-3.5 h-3.5 shrink-0"></i>
-              <span class="whitespace-nowrap font-bold">Catat Baru</span>
-            </button>
-            <button
-              onclick="switchTab('riwayat')"
-              class="text-xs font-bold text-sky-400 hover:underline ml-1 whitespace-nowrap"
-            >
-              Lihat Semua
-            </button>
-          </div>
+          <button
+            type="button"
+            onclick="switchTab('transaksi')"
+            class="btn-primary text-xs py-1.5 px-3 h-8 whitespace-nowrap flex items-center gap-1.5 shrink-0"
+          >
+            <i data-lucide="plus" class="w-3.5 h-3.5 shrink-0"></i>
+            <span class="whitespace-nowrap font-bold">Catatan Baru</span>
+          </button>
         </div>
 
         <div id="dashRecentTransactions" class="divide-y divide-[var(--border-subtle)]">
@@ -209,7 +202,7 @@
         <div class="border-b border-[var(--border-subtle)] pb-2 flex items-center justify-between">
           <h2 class="text-sm font-bold text-primary-var flex items-center gap-1.5">
             <i data-lucide="plus-circle" class="w-4 h-4 text-sky-400"></i>
-            <span>Form Catat Transaksi</span>
+            <span>Form Catatan Transaksi</span>
           </h2>
           <span class="text-[10px] text-secondary-var">Cepat & Otomatis</span>
         </div>
@@ -652,7 +645,7 @@
 
       <button onclick="switchTab('transaksi')" data-tab="transaksi" class="nav-tab-item">
         <i data-lucide="plus-circle"></i>
-        <span>Catat</span>
+        <span>Catatan</span>
       </button>
 
       <button onclick="switchTab('dompet')" data-tab="dompet" class="nav-tab-item">
@@ -1171,7 +1164,7 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/data.js?v=6"></script>
-  <script src="js/app.js?v=6"></script>
+  <script src="js/data.js?v=7"></script>
+  <script src="js/app.js?v=7"></script>
 </body>
 </html>
