@@ -1659,6 +1659,7 @@ function renderProfileTab() {
   }
 
   updateHeaderAuthIndicator();
+  updatePwaInstallButtonsVisibility(true);
 }
 
 // ========================================================
@@ -3695,8 +3696,30 @@ function isRunningStandaloneApp() {
 }
 
 function updatePwaInstallButtonsVisibility(show) {
+  const isStandalone = isRunningStandaloneApp();
+  const card = document.getElementById('pwaInstallProfileCard');
+  if (card && isStandalone) {
+    card.innerHTML = `
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+            <i data-lucide="check-circle" class="w-4 h-4"></i>
+          </div>
+          <div class="min-w-0">
+            <h2 class="text-xs sm:text-sm font-bold text-primary-var truncate">Aplikasi Terpasang</h2>
+            <p class="text-[10.5px] text-emerald-400 truncate">FinMate sedang berjalan sebagai aplikasi layar utama</p>
+          </div>
+        </div>
+        <span class="text-[10px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-0.5 rounded-full whitespace-nowrap">
+          Aktif
+        </span>
+      </div>
+    `;
+    if (window.lucide) window.lucide.createIcons();
+  }
+
   document.querySelectorAll('.btn-install-pwa').forEach((btn) => {
-    if (show && !isRunningStandaloneApp()) {
+    if (show && !isStandalone) {
       btn.classList.remove('hidden');
       btn.classList.add('flex');
     } else {
