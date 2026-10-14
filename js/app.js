@@ -1583,15 +1583,6 @@ function renderProfileTab() {
               </button>
               <button
                 type="button"
-                onclick="openGoogleClientIdSetupModal()"
-                class="px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 inline-flex items-center gap-1 transition-colors cursor-pointer"
-                title="Pengaturan Google Cloud Console"
-              >
-                <i data-lucide="key" class="w-3.5 h-3.5"></i>
-                <span>Google Console</span>
-              </button>
-              <button
-                type="button"
                 onclick="openGoogleAuthModal(false)"
                 class="px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors cursor-pointer"
               >
@@ -1885,7 +1876,7 @@ function openReceiptFullScreen() {
 const DEFAULT_GOOGLE_CLIENT_ID = '1097773326723-haj28s0pdfmm96mhbp0be8fc0bhentmf.apps.googleusercontent.com';
 const GOOGLE_CLIENT_ID_STORAGE_KEY = 'finmate_google_oauth_client_id';
 const GOOGLE_DRIVE_SCOPES = 'openid email profile https://www.googleapis.com/auth/drive.file';
-const DRIVE_MAIN_FOLDER_NAME = 'Finance Tracker Bersama';
+const DRIVE_MAIN_FOLDER_NAME = 'FinMate';
 const DRIVE_CLOUD_SNAPSHOTS_KEY = 'finmate_drive_cloud_snapshots';
 
 let pendingAutoBackupAfterLogin = false;
@@ -2011,14 +2002,6 @@ function getAutoDetectedDeviceGoogleAccounts() {
     }
   };
 
-  // Akun utama autentik persis seperti di tampilan screenshot Google Sign-in
-  addUnique(
-    'Mohamad Dwi Cahyono',
-    'muhammaddwicahyono20220@gmail.com',
-    '#d81b60',
-    ''
-  );
-
   if (state.googleAccount && state.googleAccount.email) {
     addUnique(
       state.googleAccount.name,
@@ -2114,29 +2097,33 @@ function checkAndTriggerGoogleAutoLoginOnStartup() {
 
 async function openGoogleAuthModal(triggerBackupAfterLogin = false) {
   pendingAutoBackupAfterLogin = Boolean(triggerBackupAfterLogin);
+  const clientId = getGoogleClientId();
 
-  googleOAuthFlowState = {
-    step: 1,
-    selectedEmail: '',
-    selectedDefaultName: '',
-    selectedPicture: '',
-    enteredName: '',
-    showOtherAccountInput: false
-  };
+  if (window.google && window.google.accounts && window.google.accounts.oauth2) {
+    launchRealGoogleOAuthPopup(clientId);
+    return;
+  }
 
-  const modal = document.getElementById('modalGoogleAuth');
-  if (!modal) return;
-
-  renderGoogleAuthStep();
-  modal.classList.remove('hidden');
-  modal.classList.add('flex');
+  showToast('Memuat Google Sign-In, mohon tunggu sebentar...', 'info');
+  let retries = 0;
+  const timer = setInterval(() => {
+    retries++;
+    if (window.google && window.google.accounts && window.google.accounts.oauth2) {
+      clearInterval(timer);
+      launchRealGoogleOAuthPopup(clientId);
+    } else if (retries >= 15) {
+      clearInterval(timer);
+      showToast('Layanan Google tidak dapat dijangkau. Periksa koneksi internet Anda.', 'warning');
+    }
+  }, 200);
 }
 
 function closeGoogleAuthModal() {
   const modal = document.getElementById('modalGoogleAuth');
-  if (!modal) return;
-  modal.classList.add('hidden');
-  modal.classList.remove('flex');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
 }
 
 function launchRealGoogleOAuthPopup(clientId) {
@@ -2152,37 +2139,25 @@ function launchRealGoogleOAuthPopup(clientId) {
         } else if (tokenResponse && tokenResponse.error) {
           console.error('Google OAuth token error:', tokenResponse);
           if (tokenResponse.error === 'access_denied') {
-            showToast('Akses Google ditolak. Pastikan aplikasi berstatus "In production" di Google Cloud Console.');
+            showToast('Akses login Google dibatalkan atau ditolak.');
           } else {
             showToast('Gagal terhubung ke Google: ' + (tokenResponse.error_description || tokenResponse.error));
           }
         }
       },
       error_callback: (err) => {
-        console.warn('Google OAuth popup closed or error:', err);
+        console.warn('Google OAuth error callback:', err);
         if (err && err.type === 'popup_blocked') {
-          showToast('Pop-up Google diblokir browser. Silakan izinkan pop-up di pengaturan browser.');
+          showToast('Pop-up Google diblokir browser. Silakan izinkan pop-up di browser Anda.', 'warning');
         } else {
-          googleOAuthFlowState.step = 1;
-          const modal = document.getElementById('modalGoogleAuth');
-          if (modal) {
-            renderGoogleAuthStep();
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-          }
+          showToast('Jendela login Google ditutup atau terjadi masalah koneksi.', 'info');
         }
       }
     });
     googleTokenClient.requestAccessToken({ prompt: 'select_account consent' });
   } catch (err) {
     console.error('Failed to initialize Google OAuth Client:', err);
-    googleOAuthFlowState.step = 1;
-    const modal = document.getElementById('modalGoogleAuth');
-    if (modal) {
-      renderGoogleAuthStep();
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    }
+    showToast('Gagal membuka pop-up Google OAuth.', 'warning');
   }
 }
 
@@ -2684,8 +2659,8 @@ function handleGoogleStep1PickAccount(name, email, picture = '') {
 }
 
 async function completeDirectGoogleAccountLogin(name, email, picture = '', accessToken = '') {
-  const enteredName = name || 'Mohamad Dwi Cahyono';
-  const userEmail = email || 'muhammaddwicahyono20220@gmail.com';
+  const enteredName = name || 'Pengguna FinMate';
+  const userEmail = email || '';
   const userPicture = picture || '';
   const deviceLabel = getDetectedDeviceName();
 
@@ -2706,16 +2681,18 @@ async function completeDirectGoogleAccountLogin(name, email, picture = '', acces
     connectedAt: new Date().toLocaleString('id-ID')
   };
 
-  if (!Array.isArray(state.deviceGoogleAccounts)) {
-    state.deviceGoogleAccounts = [];
-  }
-  const existsIdx = state.deviceGoogleAccounts.findIndex(
-    (a) => a.email && a.email.toLowerCase() === userEmail.toLowerCase()
-  );
-  if (existsIdx === -1) {
-    state.deviceGoogleAccounts.unshift({ name: enteredName, email: userEmail, picture: userPicture, deviceLabel });
-  } else {
-    state.deviceGoogleAccounts[existsIdx] = { name: enteredName, email: userEmail, picture: userPicture, deviceLabel };
+  if (userEmail) {
+    if (!Array.isArray(state.deviceGoogleAccounts)) {
+      state.deviceGoogleAccounts = [];
+    }
+    const existsIdx = state.deviceGoogleAccounts.findIndex(
+      (a) => a.email && a.email.toLowerCase() === userEmail.toLowerCase()
+    );
+    if (existsIdx === -1) {
+      state.deviceGoogleAccounts.unshift({ name: enteredName, email: userEmail, picture: userPicture, deviceLabel });
+    } else {
+      state.deviceGoogleAccounts[existsIdx] = { name: enteredName, email: userEmail, picture: userPicture, deviceLabel };
+    }
   }
 
   // Sinkronkan ke auth kas bersama
@@ -2725,7 +2702,7 @@ async function completeDirectGoogleAccountLogin(name, email, picture = '', acces
   state.auth.user = {
     name: enteredName,
     email: userEmail,
-    photoURL: userPicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(enteredName)}&background=d81b60&color=ffffff&bold=true`
+    photoURL: userPicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(enteredName)}&background=0284c7&color=ffffff&bold=true`
   };
   state.auth.lastSyncTime = new Date().toISOString();
 
@@ -2738,33 +2715,36 @@ async function completeDirectGoogleAccountLogin(name, email, picture = '', acces
   renderDompetTab();
   renderTransactionList();
   updateHeaderAuthIndicator();
+  closeGoogleAuthModal();
   if (window.lucide) window.lucide.createIcons();
 
-  // Tampilkan Tahap 4 (Sambutan Berhasil Login & Drive Terhubung)
-  googleOAuthFlowState.step = 4;
-  googleOAuthFlowState.selectedEmail = userEmail;
-  googleOAuthFlowState.enteredName = enteredName;
-  renderGoogleAuthStep();
-
-  // Sinkronisasi pemulihan data cadangan jika ada di Google Drive / Cloud Map
-  if (latestGoogleAccessToken && state.transactions.length === 0) {
+  // Sinkronisasi data Google Drive (Jika diakses di perangkat lain, otomatis memulihkan transaksi)
+  if (latestGoogleAccessToken) {
     try {
+      showToast('Menghubungkan ke folder FinMate di Google Drive...', 'info');
       const driveSnapshot = await fetchLatestBackupFromRealGoogleDrive(latestGoogleAccessToken);
       if (driveSnapshot && Array.isArray(driveSnapshot.transactions) && driveSnapshot.transactions.length > 0) {
         restoreFromSnapshotObject(driveSnapshot);
         await syncDriveBackupHistoryFromGoogle(latestGoogleAccessToken);
+        showToast(`Selamat datang, ${enteredName}! Data transaksi dari Google Drive berhasil dipulihkan.`, 'success');
+      } else {
+        const todayISO = getTodayLocalISO();
+        const fileName = `Cadangan_Transaksi_${todayISO}.json`;
+        const payload = buildFullTransactionBackupPayload();
+        const uploadRes = await uploadBackupToRealGoogleDrive(latestGoogleAccessToken, fileName, payload);
+        if (uploadRes && uploadRes.mainFolderId && state.googleAccount) {
+          state.googleAccount.driveFolderId = uploadRes.mainFolderId;
+          saveState();
+        }
+        await syncDriveBackupHistoryFromGoogle(latestGoogleAccessToken);
+        showToast(`Selamat datang, ${enteredName}! Folder FinMate berhasil dibuat di Google Drive.`, 'success');
       }
-    } catch (_) {}
-  } else {
-    const cloudMap = getCloudSnapshotsMap();
-    const existingSnapshot = cloudMap[userEmail.toLowerCase()];
-    if (
-      existingSnapshot &&
-      state.transactions.length === 0 &&
-      Array.isArray(existingSnapshot.transactions) &&
-      existingSnapshot.transactions.length > 0
-    ) {
-      restoreFromSnapshotObject(existingSnapshot);
+      renderDashboard();
+      renderTransactionList();
+      renderDompetTab();
+      renderProfileTab();
+    } catch (err) {
+      console.warn('Google Drive sync error:', err);
     }
   }
 
@@ -3094,7 +3074,7 @@ async function fetchLatestBackupFromRealGoogleDrive(accessToken) {
   if (!accessToken) return null;
   try {
     const query = encodeURIComponent(
-      "(name = 'FinMate_Master_Sync.json' or name contains 'Cadangan_Transaksi_') and trashed = false"
+      "(name = 'FinMate_Master_Sync.json' or name contains 'Cadangan_Transaksi_' or name contains 'FinMate_') and trashed = false"
     );
     const listRes = await fetch(
       `https://www.googleapis.com/drive/v3/files?q=${query}&orderBy=modifiedTime desc&pageSize=5&fields=files(id,name,modifiedTime,parents)`,

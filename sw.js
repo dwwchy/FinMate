@@ -1,8 +1,9 @@
-const CACHE_NAME = 'finmate-pastel-v2';
+const CACHE_NAME = 'finmate-pastel-v4';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
+  './icon.svg',
   './icon-192.png',
   './icon-512.png',
   './css/styles.css',

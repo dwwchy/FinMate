@@ -29,7 +29,7 @@
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <!-- Custom Pastel Blue Stylesheet -->
-  <link rel="stylesheet" href="css/styles.css?v=76" />
+  <link rel="stylesheet" href="css/styles.css?v=77" />
 
   <!-- Google Identity Services (Google Sign-In SDK) -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -37,12 +37,12 @@
 <body class="antialiased pb-24">
 
   <!-- ================= TOP HEADER ================= -->
-  <header class="sticky top-0 z-30 border-b border-[var(--border-color)] bg-[var(--bg-header)] backdrop-blur-xl transition-colors">
-    <div class="max-w-[800px] mx-auto px-4 py-2.5">
-      <div class="flex items-center justify-between gap-3">
+  <header class="sticky top-0 z-30 border-b border-[var(--border-color)] bg-[var(--bg-header)] backdrop-blur-xl transition-colors w-full overflow-hidden">
+    <div class="max-w-[800px] mx-auto px-3 sm:px-4 py-2 sm:py-2.5 w-full">
+      <div class="flex items-center justify-between gap-2 w-full">
         
-        <!-- Sisi Kiri: Logo + FinMate -->
-        <div class="flex items-center gap-2.5 shrink-0 min-w-max">
+        <!-- Sisi Kiri: Logo + FinMate + Tracker Keuangan Bersama (Terkunci & Tidak Terpotong) -->
+        <div class="flex items-center gap-2 sm:gap-2.5 shrink-0">
           <div class="w-8 h-8 rounded-xl overflow-hidden shadow-md shadow-sky-500/25 shrink-0 flex items-center justify-center bg-[#0284C7]">
             <img src="./icon.svg" alt="FinMate" class="w-full h-full object-cover" />
           </div>
@@ -71,17 +71,6 @@
             </button>
           </div>
 
-          <!-- Tombol Install PWA Pojok Atas (Persis Model Tracker Keuangan & UTBK) -->
-          <button
-            id="btn-install-pwa"
-            onclick="installPwaApp()"
-            class="btn-install-pwa hidden bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-extrabold px-2.5 py-1.5 rounded-lg text-xs shadow-sm transition whitespace-nowrap items-center gap-1.5 cursor-pointer"
-            title="Install Aplikasi di HP / Laptop"
-          >
-            <span>📲</span>
-            <span>Install</span>
-          </button>
-
           <!-- Toggle Dark / Light Theme -->
           <button
             id="themeToggleBtn"
@@ -91,20 +80,6 @@
             aria-label="Toggle Dark / Light Theme"
           >
             <i data-lucide="moon" id="themeIcon" class="w-4 h-4"></i>
-          </button>
-
-          <!-- Google / Cloud Sync Quick Indicator Button -->
-          <button
-            id="headerGoogleSyncBtn"
-            onclick="handleHeaderGoogleSyncClick()"
-            class="p-1.5 rounded-lg border border-[var(--border-color)] bg-[var(--input-bg)] text-secondary-var hover:border-sky-400 hover:text-sky-400 transition flex items-center gap-1.5 shrink-0"
-            title="Status Akun Google & Keuangan Bersama"
-            aria-label="Status Akun Google"
-          >
-            <div id="headerAuthAvatarContainer" class="w-4 h-4 rounded-full flex items-center justify-center overflow-hidden">
-              <i data-lucide="cloud" id="headerCloudIcon" class="w-4 h-4"></i>
-            </div>
-            <span id="headerAuthBadge" class="w-2 h-2 rounded-full bg-slate-400"></span>
           </button>
         </div>
 
@@ -560,15 +535,6 @@
               <span>Cadangkan Sekarang</span>
             </button>
           </div>
-
-          <button
-            type="button"
-            onclick="openGoogleClientIdSetupModal()"
-            class="w-full py-2 px-3 rounded-xl text-[11px] font-semibold bg-slate-900/80 hover:bg-slate-800 text-sky-300 border border-slate-800 flex items-center justify-center gap-2 transition-colors cursor-pointer"
-          >
-            <i data-lucide="key" class="w-3.5 h-3.5 text-sky-400"></i>
-            <span>Hubungkan Google Cloud Console (OAuth Client ID)</span>
-          </button>
         </div>
 
         <!-- Riwayat Cadangan Transaksi Google Drive -->
@@ -658,28 +624,6 @@
             <span>Reset Seluruh Data (Kosongkan Semua)</span>
           </button>
         </div>
-      </div>
-
-      <!-- 5.3 Install Aplikasi FinMate (PWA) -->
-      <div class="app-card space-y-2.5">
-        <div class="border-b border-[var(--border-subtle)] pb-2 flex items-center justify-between">
-          <h2 class="text-xs sm:text-sm font-bold text-primary-var flex items-center gap-1.5">
-            <i data-lucide="smartphone" class="w-4 h-4 text-amber-400"></i>
-            <span>Install FinMate di HP / Laptop</span>
-          </h2>
-          <span class="text-[10px] text-amber-400 font-bold bg-amber-400/15 border border-amber-400/30 px-2 py-0.5 rounded-full">PWA APP</span>
-        </div>
-        <p class="text-[11px] text-secondary-var leading-snug">
-          Pasang FinMate di layar utama HP atau desktop laptop Anda untuk akses secepat aplikasi bawaan tanpa perlu membuka browser secara manual.
-        </p>
-        <button
-          type="button"
-          onclick="installPwaApp()"
-          class="w-full py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-400 active:scale-[0.99] text-slate-950 shadow-md transition-all cursor-pointer"
-        >
-          <span class="text-sm">📲</span>
-          <span>Install FinMate Sekarang</span>
-        </button>
       </div>
 
     </div>
@@ -1112,15 +1056,6 @@
     </div>
   </div>
 
-  <!-- ================= MODAL LOGIN DENGAN GOOGLE (MULTI-STEP OTENTIK SEPERTI TRACKER KEUANGAN) ================= -->
-  <div id="modalGoogleAuth" class="fixed inset-0 z-50 modal-overlay hidden items-center justify-center p-3 sm:p-4" onclick="handleGoogleModalOverlayClick(event)">
-    <div class="w-full max-w-[420px] p-0 overflow-hidden my-auto relative border border-[#dadce0] shadow-2xl bg-white text-[#202124] rounded-[24px] sm:rounded-[28px]" onclick="event.stopPropagation()">
-      <div id="googleAuthModalBody">
-        <!-- Rendered via JavaScript: Step 1 (Pilih Akun) -> Step 2 (Persetujuan Drive) -> Step 3 (Konfirmasi Nama) -> Step 4 (Sambutan) -->
-      </div>
-    </div>
-  </div>
-
   <!-- ================= MODAL EVALUASI AI AKHIR BULAN ================= -->
   <div id="modalAiEvaluation" class="fixed inset-0 z-50 modal-overlay hidden items-center justify-center p-3 sm:p-4">
     <div class="app-card w-full max-w-lg space-y-3.5 my-auto max-h-[90vh] overflow-y-auto relative">
@@ -1229,7 +1164,7 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/data.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/data.js?v=3"></script>
+  <script src="js/app.js?v=3"></script>
 </body>
 </html>
